@@ -47,7 +47,7 @@ function tampilkanDaftarJajanan() {
     const daftarJajanan = dapatkanDaftarJajanan();
     
     for (const item of daftarJajanan) {
-        const jajan = new Item(item.nama, item.harga, item.jumlah, item.rasa, item.tipe);
+        const jajan = new Item(item.id, item.nama, item.harga, item.jumlah, item.rasa, item.tipe);
         renderJajanan(jajan);
     }
 }
@@ -85,17 +85,21 @@ function renderJajanan(jajan) {
     groupElement.append(nameElement);
     groupElement.append(descriptionElement);
 
-    const menuElement = document.createElement("div");
-    menuElement.classList.add("")
+    const menuElement = document.createElement("button");
+    menuElement.classList.add("menu");
+    menuElement.classList.add("icon");
+    menuElement.innerText = "\uf153";
 
     const actionElement = document.createElement("div");
     actionElement.classList.add("action");
     actionElement.append(quantityElement);
+    actionElement.append(menuElement);
 
     const containerElement = document.createElement("div");
     containerElement.classList.add("stack");
     containerElement.append(groupElement);
     containerElement.append(actionElement);
+    containerElement.data = jajan;
 
     List_DaftarJajanan.append(containerElement);
 }
