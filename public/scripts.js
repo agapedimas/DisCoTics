@@ -99,12 +99,34 @@ function renderJajanan(jajan) {
 
     const containerElement = document.createElement("div");
     containerElement.classList.add("stack");
+    containerElement.classList.add("jajanan");
     containerElement.append(groupElement);
     containerElement.append(actionElement);
     containerElement.data = jajan;
 
-    menuElement.onclick = function() {
-        hapusJajanan(jajan, containerElement);
+    menuElement.onclick = function(event) {
+        if (event.shiftKey) {
+            hapusJajanan(jajan, containerElement);
+        }
+        else {
+            Components.ActionSheet.Open(
+            {
+                Title: "Yakin ingin menghapus jajanan '" + jajan.nama + "'?",
+                Description: "Tekan Shift dan tombol (-) secara bersamaan untuk menghapus tanpa konfirmasi.",
+                Actions: [
+                    { 
+                        Title: "Hapus", Type: "Options.Critical", 
+                        Action: o => 
+                        { 
+                            hapusJajanan(jajan, containerElement);
+                        } 
+                    },
+                    { 
+                        Title: "Batal", Type: "Footer"
+                    }
+                ]
+            });
+        }
     }
 
     List_DaftarJajanan.append(containerElement);
@@ -145,6 +167,22 @@ function hapusJajanan(jajanan, element) {
     return berhasil;
 }
 
+/**
+ * Menghapus semua jajanan dari database
+ * @returns { boolean } 
+ */
+function hapusSemuaJajanan() {
+    let berhasil = true;
+
+    localStorage.removeItem("jajanan");
+
+    for (const jajananElement of [...List_DaftarJajanan.children].filter(o => o.classList.contains("jajanan")))
+        jajananElement.remove();
+
+    return berhasil;
+}
+
+// Membuka form 'Jajanan Baru'
 function bukaFormJajanan() {
     Input_Nama.value = "";
     Input_Harga.value = formatCurrency(0);
@@ -157,6 +195,7 @@ function bukaFormJajanan() {
     }
 }
 
+// Tombol 'Batal' dan 'Tambah' pada form 'Jajanan Baru'
 Button_BatalFormJajanan.onclick = function() {
     PopOver_FormJajanan.close();
 }
@@ -172,7 +211,47 @@ Button_SelesaiFormJajanan.onclick = function() {
     tambahJajanan(item);
     PopOver_FormJajanan.close();
 }
+
+// Mendaftarkan event input supaya dapat di-formatting dengan mata uang
 registerCurrencyInput(Input_Harga);
+
+// Tombol 'Tambah Random' dan 'Bersihkan Daftar'
+Button_TambahRandom.onclick = function() {
+    const rasa = [...Select_Rasa.options];
+    const tipe = [...Select_Tipe.options];
+
+    for (let i = 0; i < 5; i++) {
+        const item = new Item(
+            null,
+            randomizeString(),
+            Math.floor(Math.random() * 25000) + 5000, // range: 5,000 s.d. 30,000
+            Math.floor(Math.random() * 100),
+            rasa[Math.floor(Math.random() * rasa.length)].value,
+            tipe[Math.floor(Math.random() * tipe.length)].value
+        )
+        tambahJajanan(item);
+    }
+}
+Button_Bersihkan.onclick = function() {
+    Components.ActionSheet.Open(
+    {
+        Title: "Yakin ingin menghapus semua jajanan yang ada di daftar?",
+        Description: "Semua yang dihapus tidak dapat dipulihkan.",
+        Actions: [
+            { 
+                Title: "Hapus", Type: "Options.Critical", 
+                Action: o => 
+                { 
+                    hapusSemuaJajanan();
+                } 
+            },
+            { 
+                Title: "Batal", Type: "Footer"
+            }
+        ]
+    });
+}
+
 
 function formatCurrency(number) {
     let result = number.toLocaleString(document.documentElement.lang, { style: "currency", currency: "IDR" });
@@ -199,4 +278,13 @@ function registerCurrencyInput(input) {
 
 window.onload = function() {
     tampilkanDaftarJajanan();
+}
+
+function randomizeString() {
+    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let result = "";
+    for (let i = 0; i < 10; i++) {
+        result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return result;
 }
