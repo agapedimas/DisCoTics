@@ -67,7 +67,7 @@ function renderJajanan(jajan) {
 
     const quantityElement = document.createElement("span");
     quantityElement.classList.add("quantity");
-    quantityElement.innerHTML = jajan.jumlah;
+    quantityElement.innerHTML = "x" + jajan.jumlah;
 
     const flavorElement = document.createElement("span");
     flavorElement.classList.add("flavor");
@@ -75,9 +75,10 @@ function renderJajanan(jajan) {
 
     const descriptionElement = document.createElement("div");
     descriptionElement.classList.add("description");
-    descriptionElement.append(nameElement);
     descriptionElement.append(priceElement);
+    descriptionElement.append("•");
     descriptionElement.append(typeElement);
+    descriptionElement.append("•");
     descriptionElement.append(flavorElement);
 
     const groupElement = document.createElement("div");
@@ -88,7 +89,8 @@ function renderJajanan(jajan) {
     const menuElement = document.createElement("button");
     menuElement.classList.add("menu");
     menuElement.classList.add("icon");
-    menuElement.innerText = "\uf153";
+    menuElement.classList.add("plain")
+    menuElement.innerText = "\uf6c1";
 
     const actionElement = document.createElement("div");
     actionElement.classList.add("action");
@@ -100,6 +102,10 @@ function renderJajanan(jajan) {
     containerElement.append(groupElement);
     containerElement.append(actionElement);
     containerElement.data = jajan;
+
+    menuElement.onclick = function() {
+        hapusJajanan(jajan, containerElement);
+    }
 
     List_DaftarJajanan.append(containerElement);
 }
@@ -127,8 +133,15 @@ function tambahJajanan(jajanan) {
  * @param { Item } jajanan
  * @returns { boolean } 
  */
-function hapusJajanan(jajanan) {
+function hapusJajanan(jajanan, element) {
     let berhasil = true;
+
+    const daftarJajanan = dapatkanDaftarJajanan().filter(o => o.id != jajanan.id);
+    localStorage.setItem("jajanan", JSON.stringify(daftarJajanan));
+
+    if (element)
+        element.remove();
+
     return berhasil;
 }
 
@@ -149,6 +162,7 @@ Button_BatalFormJajanan.onclick = function() {
 }
 Button_SelesaiFormJajanan.onclick = function() {
     const item = new Item(
+        null,
         Input_Nama.value.trim(),
         Input_Harga.valueInt || 0,
         parseInt(Input_Jumlah.value) || 1,

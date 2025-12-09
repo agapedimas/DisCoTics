@@ -23,17 +23,42 @@ body {
     gap: var(--padding);
 }
 
-#List_FormJajanan .stack {
+.list:has(input) .stack {
     grid-auto-columns: 100px auto;
 }
-    #List_FormJajanan .stack span {
+    .list:has(input) .stack span {
         font-weight: 500;
     }
-    #List_FormJajanan .stack input {
+    .list:has(input) .stack input {
         text-align: right;
     }
-    #List_FormJajanan .stack label {
+    .list:has(input) .stack label {
         display: grid;
         grid-auto-flow: column;
         grid-auto-columns: auto max-content;
+    }
+
+#List_DaftarJajanan .action {
+    display: grid;
+    grid-auto-flow: column;
+    align-items: center;
+    gap: 1em;
+}
+    #List_DaftarJajanan .action button {
+        padding: 0;
+    }
+    #List_DaftarJajanan .action .quantity {
+        font-weight: 500;
+    }
+#List_DaftarJajanan .description {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: max-content;
+    gap: 1ch;
+    color: var(--foreground-description);
+    font-size: 0.9em;
+}
+    #List_DaftarJajanan .description .type, 
+    #List_DaftarJajanan .description .flavor {
+        text-transform: capitalize;
     }
