@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="id">
+    <head>
+        <meta charset="UTF-8">
+        <meta content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport">
+        <link rel="stylesheet" type="text/css" href="https://assets.agapedimas.com/ui/v3/style.css">
+        <link rel="stylesheet" type="text/css" href="./style.css">
+        <title>Pabrik Bingkisan Natal</title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="https://assets.agapedimas.com/ui/v3/head.js"></script>
+        <script src="https://assets.agapedimas.com/ui/v3/components.js"></script>
+        <script src="https://assets.agapedimas.com/ui/v3/style.js"></script>
+        <script src="https://assets.agapedimas.com/ui/v3/events.js"></script>
+    </head>
+    <body>
+        <div class="root">
+            <div class="activity">
+                <div class="header">
+                    <span class="title">Pabrik Bingkisan Natal</span>
+                </div>
+                <div class="content" id="Content_Main">
+                    <article>
+                        <div id="Section_DaftarJajanan">
+                            <div id="List_DaftarJajanan" class="list" ad-header="Daftar Jajanan" ad-action="Tambah" onaction="bukaFormJajanan()">
+                            </div>
+                        </div>
+                        <div id="Section_Tools">
+                            <div class="list" ad-header="Tools Jajanan">
+                                <div class="stack">
+                                    Hello
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </div>
+        <div class="popover" id="PopOver_FormJajanan">
+            <div class="title">
+                <button class="plain" id="Button_BatalFormJajanan">Batal</button>
+                <span>Jajanan Baru</span>
+                <button class="plain" id="Button_SelesaiFormJajanan">Tambah</button>
+            </div>
+            <div class="content">
+                <div class="list" id="List_FormJajanan">
+                    <div class="stack">
+                        <span>Nama</span>
+                        <input id="Input_Nama" placeholder="cth: Cheetos" type="text" class="plain"/>
+                    </div>
+                    <div class="stack">
+                        <span>Harga</span>
+                        <input id="Input_Harga" placeholder="cth: Rp25.000,00" type="text" class="plain"/>
+                    </div>
+                    <div class="stack">
+                        <span>Jumlah</span>
+                        <input id="Input_Jumlah" type="number" class="plain" min="0"/>
+                    </div>
+                    <div class="stack">
+                        <span>Rasa</span>
+                        <select id="Select_Rasa" class="plain">
+                            <option value="coklat">Coklat</option>
+                            <option value="stroberi">Stroberi</option>
+                            <option value="vanilla">Vanilla</option>
+                            <option value="matcha">Matcha</option>
+                            <option value="mocha">Mocha</option>
+                            <option value="caramel">Caramel</option>
+                        </select>
+                    </div>
+                    <div class="stack">
+                        <span>Tipe</span>
+                        <select id="Select_Tipe" class="plain">
+                            <option value="makanan">Makanan</option>
+                            <option value="minuman">Minuman</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="./scripts.js"></script>
+        <script src="./algorithm.js"></script>
+    </body>
+</html>

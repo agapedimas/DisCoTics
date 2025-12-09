@@ -1,0 +1,39 @@
+body {
+    display: grid;
+    height: 100vh;
+}
+
+.root {
+    grid-auto-flow: column;
+    grid-auto-columns: auto;
+    grid-auto-rows: auto;
+    grid-template-areas: unset;
+}
+
+.activity {
+    background: var(--background-activity-grid);
+    grid-auto-rows: max-content auto;
+}
+
+#Content_Main > article {
+    display: grid;
+    grid-auto-columns: min(400px, 50%) auto;
+    grid-auto-flow: column;
+    grid-auto-rows: max-content;
+    gap: var(--padding);
+}
+
+#List_FormJajanan .stack {
+    grid-auto-columns: 100px auto;
+}
+    #List_FormJajanan .stack span {
+        font-weight: 500;
+    }
+    #List_FormJajanan .stack input {
+        text-align: right;
+    }
+    #List_FormJajanan .stack label {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: auto max-content;
+    }
