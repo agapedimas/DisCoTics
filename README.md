@@ -38,3 +38,66 @@ Aplikasi dapat dijalankan tanpa instalasi atau pengaturan tambahan. Cukup lakuka
 2. Aplikasi akan langsung tampil dan siap digunakan.
 
 ## Cara Menggunakan Aplikasi
+Aplikasi dirancang untuk membantu menyusun bingkisan Natal berdasarkan aturan graph coloring dan batasan tambahan seperti harga dan kategori item. Ikuti langkah-langkah penggunaan berikut:
+### 1. Pilih Daftar Snack dan Minuman
+
+Pada panel kiri, pengguna dapat memilih:
+- Jenis snack yang ingin dimasukkan
+- Rasa dari setiap snack
+- Harga masing-masing item
+- Kategori item (snack atau minuman)
+
+> Item-item ini akan menjadi vertex dalam graf.
+
+### 2. Isi Parameter pada Tools Panel
+Pada panel kanan, pengguna dapat menentukan:
+- Jumlah bingkisan yang ingin dibuat
+- Budget maksimal per bingkisan
+- Minimal jumlah snack per bingkisan
+- Minimal jumlah minuman per bingkisan
+
+> Parameter ini menentukan aturan validasi kombinasi bingkisan.
+
+### 3. Lihat Visualisasi Graf Konflik Rasa
+Setelah semua item dipilih, aplikasi akan:
+- Membangun graf berdasarkan konflik rasa (vertex + edge),
+- Menampilkan visualisasinya,
+- Menerapkan algoritma pewarnaan graf untuk mengelompokkan item yang boleh digabungkan.
+
+Hasil pewarnaan graf ini ditampilkan agar pengguna memahami bagaimana item dikelompokkan.
+
+### 4. Jalankan Proses Penyusunan Bingkisan
+Ketika tombol **Generate** ditekan, aplikasi akan melakukan 3 tahap:
+1. **Graph Coloring**, menentukan kelompok item yang bisa digabung tanpa konflik rasa.
+2. **Generate All Possible Combinations**, mencoba berbagai kemungkinan kombinasi item menggunakan subset/bitstring.
+3. **Validator**, memeriksa kombinasi yang memenuhi:
+
+- Budget,
+- Minimal snack,
+- Minimal minuman,
+- Bebas dari konflik rasa.
+
+Semua kombinasi valid disimpan sebagai kandidat bingkisan.
+
+### 5. Sistem memilih 'Best Combination'
+Dari semua kombinasi valid, aplikasi akan menentukan kombinasi terbaik, berdasarkan prioritas berikut:
+- Total harga paling mendekati budget,
+- Bingkisan yang paling seimbang, yaitu selisih antara jumlah snack dan minuman paling kecil.
+- Jika masih terdapat lebih dari satu kandidat, dipilih kombinasi dengan jumlah item total lebih banyak.
+- Jika tetap sama, aplikasi memilih salah satu secara acak.
+
+Kombinasi ini ditandai sebagai Optimal Gift Box.
+
+### 6. Sistem menghasilkan N bingkisan final
+Untuk jumlah bingkisan yang diminta user:
+
+- Aplikasi akan melakukan *random pick* dari daftar *valid combinations*,sehingga setiap bingkisan memiliki komposisi menarik dan variatif.
+- Jika jumlah kombinasi valid lebih sedikit daripada jumlah bingkisan yang diminta, aplikasi akan mengacak pemilihan kombinasi untuk menghasilkan bingkisan lain secara natural.
+
+### 7. Output ditampilkan kepada pengguna
+Aplikasi akan menampilkan:
+
+- Graf konflik rasa (vertex & edge)
+- Hasil pewarnaan graf
+- Bingkisan final sejumlah N
+- Bingkisan paling optimal dengan detail isinya dan total harga
