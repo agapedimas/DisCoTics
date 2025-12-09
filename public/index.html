@@ -27,9 +27,22 @@
                             <button id="Button_Bersihkan" class="plain critical">Bersihkan Daftar</button>
                         </div>
                         <div id="Section_Tools">
-                            <div class="list" ad-header="Tools Jajanan">
+                            <div id="List_ToolsJajanan" class="list" ad-header="Tools Jajanan">
                                 <div class="stack">
-                                    Hello
+                                    <span>Banyak Bingkisan</span>
+                                    <input id="Input_BanyakBingkisan" type="number" class="plain" min="1" value="1"/>
+                                </div>
+                                <div class="stack">
+                                    <span>Maksimal Harga Per Bingkisan</span>
+                                    <input id="Input_MaksHargaBingkisan" type="text" class="plain" value="Rp 0,00"/>
+                                </div>
+                                <div class="stack">
+                                    <span>Banyak Makanan</span>
+                                    <input id="Input_BanyakMakanan" type="number" class="plain" min="1" value="1"/>
+                                </div>
+                                <div class="stack">
+                                    <span>Banyak Minuman</span>
+                                    <input id="Input_BanyakMinuman" type="number" class="plain" min="1" value="1"/>
                                 </div>
                             </div>
                         </div>
@@ -55,7 +68,7 @@
                     </div>
                     <div class="stack">
                         <span>Jumlah</span>
-                        <input id="Input_Jumlah" type="number" class="plain" min="0"/>
+                        <input id="Input_Jumlah" type="number" class="plain" min="1"/>
                     </div>
                     <div class="stack">
                         <span>Rasa</span>

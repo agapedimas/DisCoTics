@@ -214,6 +214,7 @@ Button_SelesaiFormJajanan.onclick = function() {
 
 // Mendaftarkan event input supaya dapat di-formatting dengan mata uang
 registerCurrencyInput(Input_Harga);
+registerCurrencyInput(Input_MaksHargaBingkisan);
 
 // Tombol 'Tambah Random' dan 'Bersihkan Daftar'
 Button_TambahRandom.onclick = function() {

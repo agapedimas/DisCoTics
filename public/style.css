@@ -38,6 +38,10 @@ body {
         grid-auto-columns: auto max-content;
     }
 
+#List_ToolsJajanan .stack {
+    grid-auto-columns: 150px auto;
+}
+
 #List_DaftarJajanan .action {
     display: grid;
     grid-auto-flow: column;
