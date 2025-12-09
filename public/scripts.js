@@ -1,13 +1,15 @@
 // kelas untuk jajanan
 class Item {
     /**
+     * @param { string } id
      * @param { string } nama 
      * @param { number } harga 
      * @param { number } jumlah 
      * @param { "coklat" | "stroberi" | "vanilla" | "matcha" | "mocha" | "caramel" } rasa 
      * @param { "makanan" | "minuman" } tipe
      */
-    constructor(nama, harga, jumlah, rasa, tipe) {
+    constructor(id, nama, harga, jumlah, rasa, tipe) {
+        this.id = id;
         this.nama = nama;
         this.harga = harga;
         this.jumlah = jumlah;
@@ -19,9 +21,11 @@ class Item {
 // kelas untuk bingkisan
 class Bingkisan {
     /**
+     * @param { string } id
      * @param { Array<Item> } daftarJajanan
      */
-    constructor(daftarJajanan) {
+    constructor(id, daftarJajanan) {
+        this.id = id;
         this.daftarJajanan = daftarJajanan;
     }
 }
@@ -81,10 +85,17 @@ function renderJajanan(jajan) {
     groupElement.append(nameElement);
     groupElement.append(descriptionElement);
 
+    const menuElement = document.createElement("div");
+    menuElement.classList.add("")
+
+    const actionElement = document.createElement("div");
+    actionElement.classList.add("action");
+    actionElement.append(quantityElement);
+
     const containerElement = document.createElement("div");
     containerElement.classList.add("stack");
     containerElement.append(groupElement);
-    containerElement.append(quantityElement);
+    containerElement.append(actionElement);
 
     List_DaftarJajanan.append(containerElement);
 }
@@ -95,6 +106,7 @@ function renderJajanan(jajan) {
  * @returns { boolean }
  */
 function tambahJajanan(jajanan) {
+    jajanan.id = new Date() * 1;
     let berhasil = true;
     
     const daftarJajanan = dapatkanDaftarJajanan();
