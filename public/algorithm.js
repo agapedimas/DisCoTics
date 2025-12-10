@@ -8,7 +8,8 @@ const items = [];
  * @returns { Array<Bingkisan> }
  */
 function buatAcak(jumlahBingkisan, maksimalHargaPerBingkisan, minimalJumlahMakanan, minimalJumlahMinuman) {
-    const daftarJajanan = dapatkanDaftarJajanan();
+    const daftarJajanan = dapatkanDaftarJajanan().map(o => new Item(
+                            o.id, o.nama, o.harga, o.jumlah, o.rasa, o.tipe));
 
     // Step 1: bangun graf konflik
     const graf = bangunGrafKonflik(daftarJajanan);
@@ -21,7 +22,7 @@ function buatAcak(jumlahBingkisan, maksimalHargaPerBingkisan, minimalJumlahMakan
     console.log("Hasil Coloring:",hasilWarna)
 
     // Step 3: Kelompokkan item per warna
-    const grupPerWarna = kelompokkanPerWarna(daftarJajanan,warnaMap);
+    const grupPerWarna = kelompokkanPerWarna(daftarJajanan,hasilWarna);
 
     // Step 4: Generate subset untuk setiap warna
     const semuaSubsetPerWarna = grupPerWarna.map(grup => generateSubset(grup));
@@ -281,6 +282,12 @@ function kelompokkanPerWarna(daftarJajanan, warnaMap) {
     for (const item of daftarJajanan) {
         const w = warnaMap[String(item.id)]; // Warna item tersebut
 
+        if (w === undefined) {
+            console.warn("WARNING: Item tidak memiliki warna:", item);
+            continue; 
+        }
+
+
         // Jika belum ada grup untuk warna w, buat array baru
         if (!grup[w]) {
             grup[w] = [];
@@ -309,9 +316,9 @@ function kelompokkanPerWarna(daftarJajanan, warnaMap) {
 
 
 /**
- * Menghasilkan semua subset dari suatu grup item.
+ * Menghasilkan semua subset dari suatu grup item. Kecuali subset kosong.
  * Contoh input: [A,C]
- * Output: [[], [A], [C], [A,C]]
+ * Output: [[A], [C], [A,C]]
  * 
  * @param {Array<Item>} grup - array item dalam satu warna
  * @returns {Array<Array<Item>>} - semua subset
@@ -328,9 +335,9 @@ function generateSubset(grup) {
     // (1 << n) artinya geser bit 1 ke kiri n kali, dalam biner 2^n
     const total = 1 << n; // bitmask
 
-    // Loop semua angka dari 0 sampai 2^n-1
+    // Loop semua angka dari 1 sampai 2^n-1
     // Setiap angka mewakili 1 subset
-    for (let mask = 0 ; mask < total ; mask++) {
+    for (let mask = 1 ; mask < total ; mask++) {
         
         // Subset ini akan kita isi sesuai bitmask
         const subset = [];
@@ -358,9 +365,9 @@ function generateSubset(grup) {
  * Menggabungkan semua subset dari tiap warna menjadi kombinasi akhir
  * Demo input (semuaSubSetPerWarna):
  * [
- *      [ [], [A], [C] ],       --> Warna 0
- *      [ [], [B] ],            --> Warna 1
- *      [ [], [D], [E], [D,E] ] --> Warna 2
+ *      [ [A], [C] ],       --> Warna 0
+ *      [ [B] ],            --> Warna 1
+ *      [ [D], [E], [D,E] ] --> Warna 2
  * ]
  * 
  * Ouput (kombinasi):
@@ -398,7 +405,7 @@ function combineSemuaWarna(semuaSubsetPerWarna) {
                 // 5. Gabungkan existing + sub
                 // - Existing = subset dari warna-warna sebelumnya
                 // - Sub = subset dari warna sekarang
-                const gabungan = [...existing,sub];
+                const gabungan = [...existing,...sub];
 
                 // 6. Tambahkan gabungan ke next[]
                 next.push(gabungan);
@@ -428,11 +435,18 @@ function validasiKombinasi(kombinasi, maxHarga, minMakanan, minMinuman) {
     let makanan = 0;
     let minuman = 0;
 
+    // Double safety untuk memastikan tidak ada rasa yang duplikat
+    const rasaSet = new Set();
+
     // 1. Hitung total harga dan jenis item
     for (const item of kombinasi) {
 
         // Tambahkan harga item
         totalHarga += item.harga;
+
+        // Cek rasa duplikat
+        if (rasaSet.has(item.rasa)) return false;
+        rasaSet.add(item.rasa);
 
         // Hitung jenis
         if (item.tipe === "makanan") {
@@ -480,14 +494,13 @@ function pilihBestCombination(kandidat, maxHarga) {
         let makanan = 0;
         let minuman = 0;
 
-        // k = array of subsets per warna
-        for (const subset of k) {
-            for (const item of subset) {
-                total += item.harga;
-                if (item.tipe === "makanan") makanan++;
-                else if (item.tipe === "minuman") minuman++;
-            }
+        // k = Array or Warna
+        for (const item of k) {
+            total += item.harga;
+            if (item.tipe === "makanan") makanan++;
+            else if (item.tipe === "minuman") minuman++;
         }
+
         // Kita cek seimbang atau tidak
         const selisih = Math.abs(makanan - minuman);
 
@@ -537,52 +550,96 @@ function pilihBestCombination(kandidat, maxHarga) {
  * 
  * Nanti hasilnya akan menjadi
  * - Bingkisan pertama = best combination
- * - Sisanya diambil secara acak dari kandidat valid
+ * - Sisanya diambil secara acak dari kandidat valid lainnya
  * - Jika kandidat valid terlalu sedikit, kombinasinya boleh berulang
+ * 
  * @param {number} jumlah - jumlah bingkisan yang diminta user
  * @param {Array<Array<Item>>} kandidatValid - kombinasi valid hasil filter
  * @param {Array<Item>} best - kombinasi terbaik
  * @returns {Array<Bingkisan>} daftar bingkisan final
  */
 function buatBingkisanFinal(jumlah, kandidatValid, best) {
+
+    // Array hasil akhir yang menampung N bingkisan
     const hasil = [];
 
     // Masukkan best combination untuk bingkisan pertama
     if (best) {
+        // Gunakan copy array agar perubahan item di luar tidak memengaruhi isi bingkisan terbaik
         hasil.push(new Bingkisan("BEST", best));
-
     }
 
-    // Jika jumlah = 1 -> selesai
+    // Jika user hanya minta 1 bingkisan -> selesai
     if (jumlah === 1) {
         return hasil;
     }
 
     // Siapkan kandidat lain agar bingkisan lain random
     // Kecuali bingkisan yang terbaik tadi
-    const kandidatLain = kandidatValid.filter(k => k !== best);
+    const kandidatLain = kandidatValid.filter(k => !samaKombinasi(k,best));
 
     // Sekarang kita isi bingkisan ke-2 hingga abis
-    for (let i = hasil.length ; i < jumlah ; i++) {
-        let pick;
+    for (let urutan = hasil.length ; urutan < jumlah ; i++) {
 
-        // Jika kandidat valid cukup banyak, pick tanpa pengulangan
+        let pick; // Kombinasi yang akan dipilih untuk bingkisan sekarang
+
+        // Jika kandidat valid cukup banyak, dan belum semua terpakai
+        // pick tanpa pengulangan
         if (kandidatLain.length > 0) {
-            // Ambil index acak
-            const idx = Math.floor(Math.random() * kandidatLain.length);
-            pick = kandidatLain[idx];
+
+            // Ambil index acak dari kandidatLain
+            const randomIdx = Math.floor(Math.random() * kandidatLain.length);
+
+            // Ambil kombinasinya
+            pick = kandidatLain[randomIdx];
 
             // Hapus supaya tidak diambil lagi
-            kandidatLain.splice(idx,1);
+            kandidatLain.splice(randomIdx,1);
+
         } else {
-            // Kandidat valid sedikit, maka kita random ulang biar natural
+
+            // Kandidat valid sedikit, dan sudah terpakai semua
+            // maka kita random pick, biar natural
             // Ambil dari list kandidat
-            const idx = Math.floor(Math.random() * kandidatValid.length);
-            pick = kandidatValid[idx];
+            const randomIdx = Math.floor(Math.random() * kandidatValid.length);
+            pick = kandidatValid[randomIdx];
         }
 
+        // Masukan bingkisan yang sudah dipilih
         hasil.push(new Bingkisan("RANDOM_" + i, pick));
     }
 
+    // Return seluruh bingkisan final
     return hasil;
+}
+
+/**
+ * Membandingkan isi dari dua kombinasi apakah sama atau tidak
+ * Akan dianggap sama jika:
+ * - Panjang array sama
+ * - Urutan item sama
+ * - Setiap item memiliki id yang sama
+ *
+ * @param {Array<Item>} a
+ * @param {Array<Item>} b
+ * @returns {boolean}
+ */
+function samaKombinasi(a, b) {
+
+    // Jika salah satu undefined otomatis tidak sama
+    if (!a || !b) return false;
+
+    // Jika panjang berbeda kombinasi juga pasti berbeda
+    if (a.length !== b.length) return false;
+
+    // Bandingkan item per index
+    for (let i = 0; i < a.length; i++) {
+        // Bandingkan via id
+        if (a[i].id !== b[i].id) {
+            return false;
+        }
+    }
+
+    // Jika sampai sini terpenuhi, semuanya sama
+    return true;
 }
