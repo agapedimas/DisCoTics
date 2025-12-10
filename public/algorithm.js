@@ -20,12 +20,100 @@ function buatAcak(jumlahBingkisan, maksimalHargaPerBingkisan, minimalJumlahMakan
     console.log("Graf konflik:",graf);
     console.log("Hasil Coloring:",hasilWarna)
 
-    // Step 3: Tahap Kombinasi
+    // Step 3: Kelompokkan item per warna
+    const grupPerWarna = kelompokkanPerWarna(daftarJajanan,warnaMap);
 
-    // Step 4: tahap validasi
+    // Step 4: Generate subset untuk setiap warna
+    const semuaSubsetPerWarna = grupPerWarna.map(grup => generateSubset(grup));
 
-    return //... ;
+    // Step 5: Combine semua subset jadi daftar semua komninasi
+    const semuaKandidat = combineSemuaWarna(semuaSubsetPerWarna);
+
+    // Step 6: Validasi setiap kombinasi
+    const kandidatValid = semuaKandidat.filter(k => validasiKombinasi(k, maksimalHargaPerBingkisan, minimalJumlahMakanan, minimalJumlahMinuman));
+
+    console.log("Kandidat valid:",kandidatValid);
+
+    if (kandidatValid.length === 0) {
+        console.warn("Tidak ada kombinasi valid.");
+        return[];
+    }
+
+    // Step 7: Cari kombinasi terbaik
+    const best = pilihBestCombination(kandidatValid,maksimalHargaPerBingkisan);
+
+    console.log("Best combination:",best);
+
+    // Step 8: Buat bingkisan final sebanyak jumlahBingkisan
+    const bingkisanFinal = buatBingkisanFinal(jumlahBingkisan,kandidatValid,best);
+
+    // Kembalikan semua bingkisan yang sudah terisi
+
+    return bingkisanFinal;
 }
+
+
+
+function buatAcakDebug(jumlahBingkisan, maksimalHarga, minMakanan, minMinuman) {
+
+    console.log("===== DEBUG: MULAI ALGORITMA =====");
+
+    const daftarJajanan = dapatkanDaftarJajanan();
+    console.log("Daftar Jajanan:", daftarJajanan);
+
+    if (daftarJajanan.length === 0) {
+        console.warn("Tidak ada jajanan di database.");
+        return [];
+    }
+
+    // 1. Build graph
+    const graf = bangunGrafKonflik(daftarJajanan);
+    console.log("Graf Konflik (Adjacency List):", graf);
+
+    // 2. Welsh–Powell Coloring
+    const warnaMap = welshPowellColoring(daftarJajanan, graf);
+    console.log("Hasil Coloring:", warnaMap);
+
+    // 3. Group by color
+    const grupPerWarna = kelompokkanPerWarna(daftarJajanan, warnaMap);
+    console.log("Grup per Warna:", grupPerWarna);
+
+    // 4. Subset per warna
+    const subsetPerWarna = grupPerWarna.map(grup => generateSubset(grup));
+    console.log("Subset per Warna:", subsetPerWarna);
+
+    // 5. Semua kombinasi (cross product)
+    const kandidatSemua = combineSemuaWarna(subsetPerWarna);
+    console.log("Semua Kandidat Kombinasi:", kandidatSemua);
+
+    // 6. Validasi kombinasi
+    const kandidatValid = kandidatSemua.filter(k =>
+        validasiKombinasi(k, maksimalHarga, minMakanan, minMinuman)
+    );
+    console.log("Kandidat Valid:", kandidatValid);
+
+    if (kandidatValid.length === 0) {
+        console.warn("Tidak ada kombinasi valid.");
+        return [];
+    }
+
+    // 7. Best Combination
+    const best = pilihBestCombination(kandidatValid, maksimalHarga);
+    console.log("BEST Combination:", best);
+
+    // 8. Generate N gift boxes
+    const finalBoxes = buatBingkisanFinal(jumlahBingkisan, kandidatValid, best);
+    console.log("Bingkisan Final:", finalBoxes);
+
+    console.log("===== DEBUG: SELESAI =====");
+
+    return finalBoxes;
+}
+
+
+
+
+
 
 /**
  * Membangun adjacency list dari daftar jajanan
@@ -73,8 +161,8 @@ function bangunGrafKonflik(daftarJajanan) {
                 const idJ = String(items[j].id);
 
                 // Tambah koneksi dua arah
-                graf[idI].add(Number(idJ)); // simpan sebagai number di dalam Set
-                graf[idJ].add(Number(idI));
+                graf[idI].add(idJ); // simpan sebagai number di dalam Set
+                graf[idJ].add(idI);
             }
         }
     }
@@ -144,7 +232,7 @@ function welshPowellColoring(daftarJajanan, graf) {
             // Cek apakah u berkonflik dengan v
             const adjU = graf[uId];
 
-            if (adjU && adjU.has(Number(vId))) {
+            if (adjU && adjU.has(vId)) {
                 // Jika u dan v bertetangga tidak bisa pakai warna sama
                 continue;
             }
@@ -156,7 +244,7 @@ function welshPowellColoring(daftarJajanan, graf) {
             for (const idInMap in warnaMap) {
                 if (warnaMap[idInMap] === currentColor) {
                     // idInMap adalah string key, convert ke number
-                    const idNum = Number(idInMap);
+                    const idNum = idInMap;
                     // Jika u memiliki adjacency set dan mengandung idNum, berkonflik
                     if (adjU && adjU.has(idNum)) {
                         aman = false;
@@ -191,7 +279,7 @@ function kelompokkanPerWarna(daftarJajanan, warnaMap) {
 
     // Iterasi semua item di daftar jajanan
     for (const item of daftarJajanan) {
-        const W = warnaMap[String(item.id)]; // Warna item tersebut
+        const w = warnaMap[String(item.id)]; // Warna item tersebut
 
         // Jika belum ada grup untuk warna w, buat array baru
         if (!grup[w]) {
@@ -268,9 +356,233 @@ function generateSubset(grup) {
 
 /**
  * Menggabungkan semua subset dari tiap warna menjadi kombinasi akhir
- * sebent
+ * Demo input (semuaSubSetPerWarna):
+ * [
+ *      [ [], [A], [C] ],       --> Warna 0
+ *      [ [], [B] ],            --> Warna 1
+ *      [ [], [D], [E], [D,E] ] --> Warna 2
+ * ]
+ * 
+ * Ouput (kombinasi):
+ * [
+ *      [],
+ *      [A], [C],
+ *      [B], [A,B], [C,B],
+ *      [D], [A,D], [C,D], [B,D], [A,B,D], ...
+ * ]
  * @param {*} semuaSubsetPerWarna 
+ * @returns {Array<Array<Item>>} semua kombinasi item yang mungkin
  */
 function combineSemuaWarna(semuaSubsetPerWarna) {
 
+    // 1. Mulai dengan kombinasi kosong
+    // Nanti akan dilakukan ini:
+    // - Combine dengan subset warna 0
+    // - Combine dengan subset warna 1
+    // - Combine dengan subset warna 2, dst.
+    let kombinasi = [ [] ];
+
+    // 2. Loop setiap warna.
+    // SubsetWarna adalah array berisi subset dari warna itu
+    for (const SubsetWarna of semuaSubsetPerWarna) {
+
+        // next ini bakal menampung hasil gabung tahap selanjutnya
+        const next = [];
+
+        // 3. Loop semua kombinasi yang sudah terbentuk
+        for (const existing of kombinasi) {
+
+            // 4. Loop semua subset dari warna saat ini
+            for (const sub of SubsetWarna) {
+
+                // 5. Gabungkan existing + sub
+                // - Existing = subset dari warna-warna sebelumnya
+                // - Sub = subset dari warna sekarang
+                const gabungan = [...existing,sub];
+
+                // 6. Tambahkan gabungan ke next[]
+                next.push(gabungan);
+            }
+        }
+
+        // 7. Setelah semua existing dan seluruh subset warna selesai
+        // Update kombinasi menjadi next
+        kombinasi = next;
+    }
+
+    // 8. Setelah semua warna diproses inilah daftar final kombinasinya
+    return kombinasi;
+}
+
+/**
+ * Method untuk mengecek apakah suatu kombinasi itu valid sesuai aturan
+ * 
+ * @param {Array<Item>} kombinasi  - Array berisi item dari 1 kandidat bingkisan
+ * @param {number} maxHarga - batas maksimal harga perbingkisan
+ * @param {number} minMakanan - minimal jumlah makanan
+ * @param {number} minMinuman - minimal jumlah minuman
+ */
+function validasiKombinasi(kombinasi, maxHarga, minMakanan, minMinuman) {
+
+    let totalHarga = 0;
+    let makanan = 0;
+    let minuman = 0;
+
+    // 1. Hitung total harga dan jenis item
+    for (const item of kombinasi) {
+
+        // Tambahkan harga item
+        totalHarga += item.harga;
+
+        // Hitung jenis
+        if (item.tipe === "makanan") {
+            makanan++;
+        } else if (item.tipe === "minuman") {
+            minuman++;
+        }
+    }
+
+    // 2. Cek batas maksimal budget
+    if (totalHarga > maxHarga) {
+        return false; // tidak valid
+    }
+
+    // 3. Cek minimal makanan
+    if (makanan < minMakanan) {
+        return false; // Tidak valid
+    }
+
+    // 4. Cek minimal minuman
+    if (minuman < minMinuman) {
+        return false;
+    }
+
+    // 5. Jika lolos semua, maka valid
+    return true;
+}
+
+/**
+ * Memilih kombinasi terbaik dari semua kandidat valid
+ * @param {Array<Array<Item>>} kandidat - semua kombinasi valid 
+ * @param {number} maxHarga - batas maksimal harga per bingkisan
+ * @returns {Array<Item>} kombinasi terbaik 
+ */
+function pilihBestCombination(kandidat, maxHarga) {
+
+    // Jika tidak ada kombinasi valid, return null
+    if (kandidat.length === 0) return null;
+
+    // Sekarang hitung semua nilai untuk setiap kandidat
+    // Simpan di array untuk di sort
+    const nilai = kandidat.map(k => {
+
+        let total = 0;
+        let makanan = 0;
+        let minuman = 0;
+
+        // k = array of subsets per warna
+        for (const subset of k) {
+            for (const item of subset) {
+                total += item.harga;
+                if (item.tipe === "makanan") makanan++;
+                else if (item.tipe === "minuman") minuman++;
+            }
+        }
+        // Kita cek seimbang atau tidak
+        const selisih = Math.abs(makanan - minuman);
+
+        return {
+            kombinasi: k,
+            totalHarga: total,
+            selisih: selisih,
+            jumlahItem: makanan + minuman
+        };
+    });
+
+    // Filter hanya ambil yang totalHarga <= maxHarga
+    const memenuhiBudget = nilai.filter(o => o.totalHarga <= maxHarga);
+
+    if (memenuhiBudget.length === 0) return null;
+
+    // Sort prioritas untuk menentukan kandidat terbaik berdasarkan:
+    // 1. total harga terbesar (paling mendekati maxHarga)
+    // 2. Selisih makanan-minuman paling kecil
+    // 3. Jumlah item terbanyak
+    memenuhiBudget.sort((a,b) => {
+
+        // a. Harga paling mendekati budget, kita pilih yang paling besar dulu
+        // Sorting descending
+        if (b.totalHarga !== a.totalHarga) return b.totalHarga - a.totalHarga;
+
+        // b. Keseimbangan kategori
+        // Sorting ascending
+        if (a.selisih !== b.selisih) return a.selisih - b.selisih;
+
+        // c. Jumlah item terbanyak
+        // Sorting descending
+        if (b.jumlahItem !== a.jumlahItem) return b.jumlahItem - a.jumlahItem;
+
+        // d. Jika masih sama, kita pick random antara kandidat itu
+        // Buat tie-breaker
+        return (Math.random() < 0.5 ? -1 : 1);
+    });
+
+    // Return kandidat terbaik urutan peratma setlah sort
+
+    return memenuhiBudget[0].kombinasi;
+}
+
+/**
+ * Menghasilkan N bingkisan final untuk user
+ * 
+ * Nanti hasilnya akan menjadi
+ * - Bingkisan pertama = best combination
+ * - Sisanya diambil secara acak dari kandidat valid
+ * - Jika kandidat valid terlalu sedikit, kombinasinya boleh berulang
+ * @param {number} jumlah - jumlah bingkisan yang diminta user
+ * @param {Array<Array<Item>>} kandidatValid - kombinasi valid hasil filter
+ * @param {Array<Item>} best - kombinasi terbaik
+ * @returns {Array<Bingkisan>} daftar bingkisan final
+ */
+function buatBingkisanFinal(jumlah, kandidatValid, best) {
+    const hasil = [];
+
+    // Masukkan best combination untuk bingkisan pertama
+    if (best) {
+        hasil.push(new Bingkisan("BEST", best));
+
+    }
+
+    // Jika jumlah = 1 -> selesai
+    if (jumlah === 1) {
+        return hasil;
+    }
+
+    // Siapkan kandidat lain agar bingkisan lain random
+    // Kecuali bingkisan yang terbaik tadi
+    const kandidatLain = kandidatValid.filter(k => k !== best);
+
+    // Sekarang kita isi bingkisan ke-2 hingga abis
+    for (let i = hasil.length ; i < jumlah ; i++) {
+        let pick;
+
+        // Jika kandidat valid cukup banyak, pick tanpa pengulangan
+        if (kandidatLain.length > 0) {
+            // Ambil index acak
+            const idx = Math.floor(Math.random() * kandidatLain.length);
+            pick = kandidatLain[idx];
+
+            // Hapus supaya tidak diambil lagi
+            kandidatLain.splice(idx,1);
+        } else {
+            // Kandidat valid sedikit, maka kita random ulang biar natural
+            // Ambil dari list kandidat
+            const idx = Math.floor(Math.random() * kandidatValid.length);
+            pick = kandidatValid[idx];
+        }
+
+        hasil.push(new Bingkisan("RANDOM_" + i, pick));
+    }
+
+    return hasil;
 }
