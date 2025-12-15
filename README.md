@@ -7,30 +7,29 @@ Discrete Competition in Informatics
 - Michael Vian Tirta Wangsa / 6182401037
 - Pearce Nathaniel Nicholas / 6182401015
 
-## Deskripsi Studi Kasus: Pewarnaan Graf pada Bingkisan Snack
-Dalam studi kasus ini, kami memodelkan permasalahan penyusunan bingkisan snack sebagai sebuah persoalan *graph coloring* (pewarnaan graf) dengan beberapa batasan (*constraints*). Dodo ingin membuat bingkisan Natal yang berisi berbagai jenis jajanan dan minuman, namun dengan ketentuan tertentu agar setiap bingkisan tetap menarik, seimbang, dan tidak melebihi anggaran.
+## Deskripsi Studi Kasus: Penerapan Graph Coloring dalam Penyusunan Bingkisan Snack
+Dalam studi kasus ini, kami mengangkat permasalahan penyusunan bingkisan snack sebagai sebuah persoalan pewarnaan graf (graph coloring) yang dikombinasikan dengan batasan (constraints) tambahan. Dodo ingin membuat bingkisan Natal yang berisi berbagai jenis jajanan dan minuman, namun dengan ketentuan tertentu agar setiap bingkisan tetap menarik, seimbang, dan tidak melebihi anggaran.
 
-Aturan dasar pertama adalah bahwa setiap bingkisan tidak boleh berisi dua jajanan dengan rasa yang sama. Artinya, jika terdapat dua item dengan rasa identik, kedua item tersebut tidak boleh ditempatkan pada bingkisan yang sama. Selain itu, diterapkan pula beberapa constraint tambahan, yaitu:
+Aturan dasar utama adalah bahwa setiap bingkisan tidak boleh berisi dua item dengan rasa yang sama. Artinya, jika terdapat dua item dengan rasa identik, maka kedua item tersebut tidak boleh berada dalam satu bingkisan yang sama. Selain itu, diterapkan pula beberapa batasan tambahan, yaitu:
 1. Setiap bingkisan memiliki batas harga maksimum, sehingga total harga seluruh item di dalamnya tidak boleh melebihi budget yang ditentukan.
-2. Setiap bingkisan harus memuat beragam jenis item, misalnya wajib terdapat kategori tertentu seperti minuman agar bingkisan lebih lengkap.
+2. Setiap bingkisan harus memiliki komposisi item yang seimbang, misalnya terdapat minimal jumlah makanan dan minuman tertentu.
 
-Setiap item (jajanan atau minuman) dimodelkan sebagai **vertex (simpul)**. Kemudian, **edge (sisi)** ditambahkan antara dua simpul yang mewakili item dengan rasa yang sama atau item yang tidak boleh berada bersama dalam satu bingkisan. Edge tersebut menandakan bahwa kedua item tersebut berkonflik dan tidak dapat dikelompokkan dalam warna (bingkisan) yang sama.
+Setiap item (jajanan atau minuman) dimodelkan sebagai sebuah **vertex (simpul)** dalam graf. Kemudian, **edge (sisi)** ditambahkan antara dua simpul yang merepresentasikan item dengan rasa yang sama atau item yang tidak boleh berada bersama dalam satu bingkisan. Edge tersebut menandakan adanya konflik antar item.
 
-Dengan demikian, permasalahan ini dapat diformulasikan sebagai persoalan vertex coloring, yaitu memberikan warna pada setiap simpul sehingga dua simpul yang terhubung oleh sebuah edge tidak memiliki warna yang sama.
-- Satu warna = satu bingkisan.
-- Simpul berjajaran (ber-edge) harus memiliki warna berbeda = jajanan tidak boleh berada dalam bingkisan yang sama.
+Dengan demikian, graf yang terbentuk merupakan graf konflik rasa. Proses pewarnaan graf digunakan secara internal oleh sistem untuk memodelkan dan memisahkan item-item yang saling berkonflik, sehingga dua simpul yang terhubung oleh sebuah edge tidak dikelompokkan bersama dalam proses penyusunan
+bingkisan.
 
-Tujuan akhirnya untuk mendapatkan pewarnaan graf menggunakan jumlah warna seminimal mungkin yang merepresentasikan jumlah minimum bingkisan yang tetap memenuhi batasan rasa unik dalam setiap bingkisan dan tetap memenuhi seluruh batasan. Penyelesaian ini akan menunjukkan bagaimana teknik pewarnaan graf digunakan untuk mengoptimalkan proses pengelompokkan objek dengan batasan tertentu dalam kasus dunia nyata.
+Selanjutnya, berdasarkan graf yang telah diwarnai, sistem melakukan proses penyusunan bingkisan dengan mempertimbangkan batasan tambahan seperti budget dan komposisi item. Dengan pendekatan ini, graph coloring berperan sebagai dasar pemodelan dan visualisasi konflik, sementara proses pemilihan kombinasi item memastikan setiap bingkisan yang dihasilkan tetap valid dan optimal.
 
 ## Teknologi yang Digunakan
 Aplikasi dibuat menggunakan teknologi web sederhana sehingga dapat dijalankan langsung melalui browser tanpa instalasi tambahan. Teknologi yang digunakan meliputi:
-- HTML, digunakan untuk membangun struktur halaman dan elemen dasar yang menampilkan graf dan kontrol untuk input.
+- HTML, digunakan untuk membangun struktur halaman dan elemen dasar antarmuka aplikasi.
 - CSS, berfungsi untuk mengatur tampilan visual, tata letak, serta pewarnaan yang digunakan untuk representasi graf.
 - JavaScript, menjadi inti dari logika aplikasi, mencakup:
-    - Pembentukan graf berdasarkan data yang dimasukkan pengguna
-    - Penerapan algoritma pewarnaan graf
-    - Visualisasi hasil pewarnaan
-    - Perhitungan jumlah warna minimum yang diperlukan
+    - Pembentukan graf konflik berdasarkan data item yang dimasukkan pengguna.
+    - Penerapan algoritma pewarnaan graf untuk memisahkan item yang berkonflik.
+    - Proses penyusunan bingkisan berdasarkan hasil pewarnaan graf dan batasan tambahan.
+    - Evaluasi dan pemilihan kombinasi bingkisan yang paling optimal.
 
 ## Cara Menjalankan Aplikasi
 Aplikasi dapat dijalankan tanpa instalasi atau pengaturan tambahan. Cukup lakukan langkah berikut:
@@ -42,40 +41,39 @@ Aplikasi dirancang untuk membantu menyusun bingkisan Natal berdasarkan aturan gr
 ### 1. Pilih Daftar Snack dan Minuman
 
 Pada panel kiri, pengguna dapat memilih:
-- Jenis snack yang ingin dimasukkan
-- Rasa dari setiap snack
-- Harga masing-masing item
-- Kategori item (snack atau minuman)
+- Jenis snack yang ingin dimasukkan,
+- Rasa dari setiap snack,
+- Harga masing-masing item,
+- Kategori item (snack atau minuman).
 
-> Item-item ini akan menjadi vertex dalam graf.
+> Item-item ini akan menjadi **vertex** dalam graf.
 
 ### 2. Isi Parameter pada Tools Panel
 Pada panel kanan, pengguna dapat menentukan:
-- Jumlah bingkisan yang ingin dibuat
-- Budget maksimal per bingkisan
-- Minimal jumlah snack per bingkisan
-- Minimal jumlah minuman per bingkisan
+- Jumlah bingkisan yang ingin dibuat,
+- Budget maksimal per bingkisan,
+- Minimal jumlah snack per bingkisan,
+- Minimal jumlah minuman per bingkisan.
 
 > Parameter ini menentukan aturan validasi kombinasi bingkisan.
 
-### 3. Lihat Visualisasi Graf Konflik Rasa
+### 3. Membangun Graf Konflik Rasa
 Setelah semua item dipilih, aplikasi akan:
-- Membangun graf berdasarkan konflik rasa (vertex + edge),
-- Menampilkan visualisasinya,
+- Membangun graf berdasarkan kesamaan rasa (vertex + edge),
 - Menerapkan algoritma pewarnaan graf untuk mengelompokkan item yang boleh digabungkan.
 
-Hasil pewarnaan graf ini ditampilkan agar pengguna memahami bagaimana item dikelompokkan.
+Hasil pewarnaan graf digunakan sebagai dasar logika internal sistem dalam menyusun kombinasi item yang bebas konflik rasa.
 
 ### 4. Jalankan Proses Penyusunan Bingkisan
-Ketika tombol **Generate** ditekan, aplikasi akan melakukan 3 tahap:
-1. **Graph Coloring**, menentukan kelompok item yang bisa digabung tanpa konflik rasa.
-2. **Generate All Possible Combinations**, mencoba berbagai kemungkinan kombinasi item menggunakan subset/bitstring.
-3. **Validator**, memeriksa kombinasi yang memenuhi:
+Ketika tombol **Generate** ditekan, aplikasi akan melakukan 3 tahap utama:
+1. **Graph Coloring**, untuk memisahkan item-item yang berkonflik rasa.
+2. **Pencarian Kombinasi Item**, dengan mempertimbangkan hasil pewarnaan graf dan batasan tambahan.
+3. **Validasi Kombinasi**, untuk memastikan setiap bingkisan memenuhi:
 
-- Budget,
+- Batas budget,
 - Minimal snack,
 - Minimal minuman,
-- Bebas dari konflik rasa.
+- Tidak mengandung konflik rasa.
 
 Semua kombinasi valid disimpan sebagai kandidat bingkisan.
 
@@ -86,18 +84,16 @@ Dari semua kombinasi valid, aplikasi akan menentukan kombinasi terbaik, berdasar
 - Jika masih terdapat lebih dari satu kandidat, dipilih kombinasi dengan jumlah item total lebih banyak.
 - Jika tetap sama, aplikasi memilih salah satu secara acak.
 
-Kombinasi ini ditandai sebagai Optimal Gift Box.
+Kombinasi ini ditandai sebagai **Optimal Gift Box**.
 
 ### 6. Sistem menghasilkan N bingkisan final
 Untuk jumlah bingkisan yang diminta user:
 
-- Aplikasi akan melakukan *random pick* dari daftar *valid combinations*,sehingga setiap bingkisan memiliki komposisi menarik dan variatif.
-- Jika jumlah kombinasi valid lebih sedikit daripada jumlah bingkisan yang diminta, aplikasi akan mengacak pemilihan kombinasi untuk menghasilkan bingkisan lain secara natural.
+- Bingkisan pertama menggunakan *best combination*.
+- Bingkisan selanjutnya diambil secara *random* dari kandidat valid lainnya agar hasil lebih variatif.
+- Jika jumlah kandidat valid lebih sedikit daripada jumlah bingkisan yang diminta, sistem memperbolehkan pengulangan kombinasi.
 
 ### 7. Output ditampilkan kepada pengguna
 Aplikasi akan menampilkan:
-
-- Graf konflik rasa (vertex & edge)
-- Hasil pewarnaan graf
 - Bingkisan final sejumlah N
 - Bingkisan paling optimal dengan detail isinya dan total harga
