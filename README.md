@@ -37,63 +37,73 @@ Aplikasi dapat dijalankan tanpa instalasi atau pengaturan tambahan. Cukup lakuka
 2. Aplikasi akan langsung tampil dan siap digunakan.
 
 ## Cara Menggunakan Aplikasi
-Aplikasi dirancang untuk membantu menyusun bingkisan Natal berdasarkan aturan graph coloring dan batasan tambahan seperti harga dan kategori item. Ikuti langkah-langkah penggunaan berikut:
-### 1. Pilih Daftar Snack dan Minuman
 
+Aplikasi dirancang untuk membantu menyusun bingkisan Natal berdasarkan aturan graph coloring dan batasan tambahan seperti harga dan kategori item. Ikuti langkah-langkah penggunaan berikut:
+
+### 1. Pilih Daftar Snack dan Minuman
 Pada panel kiri, pengguna dapat memilih:
+
 - Jenis snack yang ingin dimasukkan,
 - Rasa dari setiap snack,
 - Harga masing-masing item,
 - Kategori item (snack atau minuman).
-
-> Item-item ini akan menjadi **vertex** dalam graf.
+- Item-item ini akan menjadi vertex dalam graf.
 
 ### 2. Isi Parameter pada Tools Panel
+
 Pada panel kanan, pengguna dapat menentukan:
+
 - Jumlah bingkisan yang ingin dibuat,
 - Budget maksimal per bingkisan,
 - Minimal jumlah snack per bingkisan,
 - Minimal jumlah minuman per bingkisan.
-
-> Parameter ini menentukan aturan validasi kombinasi bingkisan.
+- Parameter ini menentukan aturan validasi kombinasi bingkisan.
 
 ### 3. Membangun Graf Konflik Rasa
+
 Setelah semua item dipilih, aplikasi akan:
+
 - Membangun graf berdasarkan kesamaan rasa (vertex + edge),
 - Menerapkan algoritma pewarnaan graf untuk mengelompokkan item yang boleh digabungkan.
 
-Hasil pewarnaan graf digunakan sebagai dasar logika internal sistem dalam menyusun kombinasi item yang bebas konflik rasa.
+> Hasil pewarnaan graf digunakan sebagai dasar logika internal sistem dalam menyusun kombinasi item yang bebas konflik rasa.
 
 ### 4. Jalankan Proses Penyusunan Bingkisan
-Ketika tombol **Generate** ditekan, aplikasi akan melakukan 3 tahap utama:
-1. **Graph Coloring**, untuk memisahkan item-item yang berkonflik rasa.
-2. **Pencarian Kombinasi Item**, dengan mempertimbangkan hasil pewarnaan graf dan batasan tambahan.
-3. **Validasi Kombinasi**, untuk memastikan setiap bingkisan memenuhi:
 
-- Batas budget,
-- Minimal snack,
-- Minimal minuman,
-- Tidak mengandung konflik rasa.
+Ketika tombol Generate ditekan, aplikasi akan melakukan 3 tahap utama:
 
-Semua kombinasi valid disimpan sebagai kandidat bingkisan.
+- Graph Coloring, untuk memisahkan item-item yang berkonflik rasa ke dalam kelompok warna berbeda.
+- Optimasi Seleksi Item (Greedy), sistem mengambil kelompok item dari setiap warna, lalu secara otomatis menyaring item agar sesuai dengan budget (mengutamakan item termurah agar muat banyak).
+- Validasi Komposisi, untuk memastikan kandidat bingkisan tersebut memiliki syarat yang diminta, antara lain:
+
+    - Batas budget (Total harga ≤ Maksimal budget),
+    - Minimal jumlah makanan,
+    - Minimal jumlah minuman,
+    - Tidak mengandung konflik rasa.
+
+> Semua kombinasi valid disimpan sebagai kandidat bingkisan.
 
 ### 5. Sistem memilih 'Best Combination'
-Dari semua kombinasi valid, aplikasi akan menentukan kombinasi terbaik, berdasarkan prioritas berikut:
-- Total harga paling mendekati budget,
-- Bingkisan yang paling seimbang, yaitu selisih antara jumlah snack dan minuman paling kecil.
-- Jika masih terdapat lebih dari satu kandidat, dipilih kombinasi dengan jumlah item total lebih banyak.
-- Jika tetap sama, aplikasi memilih salah satu secara acak.
 
-Kombinasi ini ditandai sebagai **Optimal Gift Box**.
+Dari semua kandidat valid, aplikasi akan menentukan satu kombinasi terbaik, berdasarkan prioritas berikut:
+
+- Total Harga Tertinggi (Paling mendekati budget maksimal agar optimal).
+- Keseimbangan Item, yaitu selisih antara jumlah makanan dan minuman paling kecil.
+- Jumlah Item Terbanyak.
+
+> Kombinasi ini ditandai sebagai Optimal Gift Box.
 
 ### 6. Sistem menghasilkan N bingkisan final
-Untuk jumlah bingkisan yang diminta user:
 
-- Bingkisan pertama menggunakan *best combination*.
-- Bingkisan selanjutnya diambil secara *random* dari kandidat valid lainnya agar hasil lebih variatif.
-- Jika jumlah kandidat valid lebih sedikit daripada jumlah bingkisan yang diminta, sistem memperbolehkan pengulangan kombinasi.
+Untuk memenuhi jumlah bingkisan yang diminta user (N):
+
+- Bingkisan pertama diisi menggunakan Best Combination.
+- Bingkisan selanjutnya diambil secara bergantian (bergilir) dari kandidat valid lainnya agar hasil variatif.
+- Jika jumlah kandidat valid lebih sedikit daripada jumlah bingkisan yang diminta, sistem akan mengulangi pengambilan kandidat secara otomatis.
 
 ### 7. Output ditampilkan kepada pengguna
+
 Aplikasi akan menampilkan:
-- Bingkisan final sejumlah N
-- Bingkisan paling optimal dengan detail isinya dan total harga
+
+    - Bingkisan final sejumlah N.
+    - Bingkisan paling optimal dengan detail isinya dan total harga.
