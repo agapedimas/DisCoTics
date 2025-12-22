@@ -105,5 +105,5 @@ Untuk memenuhi jumlah bingkisan yang diminta user (N):
 
 Aplikasi akan menampilkan:
 
-    - Bingkisan final sejumlah N.
-    - Bingkisan paling optimal dengan detail isinya dan total harga.
+- Bingkisan final sejumlah N.
+- Bingkisan paling optimal dengan detail isinya dan total harga.
