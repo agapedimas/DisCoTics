@@ -7,23 +7,47 @@
  */
 
 function generateBingkisan() {
-    // Ambil Data Jajanan dari script.js
+    // Ambil Data Jajanan
     const daftarMentah = dapatkanDaftarJajanan();
     
     if (!daftarMentah || daftarMentah.length === 0) {
-        alert("Data kosong! Masukkan jajanan dulu.");
+        // Notifikasi aman (cek apakah library ada)
+        if (typeof Components !== 'undefined' && Components.Notification) {
+            Components.Notification.Send({ 
+                Id: "data_kosong", Title: "Data Kosong", Message: "Data kosong!", Icon: "\ufe60" 
+            });
+        } else {
+            alert("Data kosong! Masukkan jajanan dulu.");
+        }
         return;
     }
 
-    // Ambil Config dari Element HTML
-    const jumlahBingkisan = parseInt(Input_BanyakBingkisan.value) || 1;
+    // Ambil Config Input
+    const jumlahBingkisan = parseInt(document.getElementById("Input_BanyakBingkisan").value) || 1;
     
-    // Prioritaskan valueInt dari script.js, kalau gak ada baru parse manual
-    const maxBudget = Input_MaksHargaBingkisan.valueInt;
-    const minMakanan = parseInt(Input_BanyakMakanan.value) || 0;
-    const minMinuman = parseInt(Input_BanyakMinuman.value) || 0;
+    // Parsing harga manual
+    const inputHargaEl = document.getElementById("Input_MaksHargaBingkisan");
+    let rawHarga = inputHargaEl.value; // Ambil teks, "Rp 10.000,00"
+    
+    // Buang koma dan angka di belakangnya (Agar 10.000,00 tidak jadi 1 Juta)
+    if (rawHarga.includes(',')) {
+        rawHarga = rawHarga.split(',')[0]; 
+    }
+    
+    // Ambil angka saja (buang Rp dan Titik)
+    const bersihHarga = rawHarga.replace(/[^0-9]/g, ''); 
+    
+    // Convert ke Integer
+    const maxBudget = parseInt(bersihHarga) || 0; 
 
-    // PANGGIL LOGIKA UTAMA (buatAcak)
+    // Debugging
+    console.log(`Budget Final: ${maxBudget} (Input Asli: ${inputHargaEl.value})`);
+    // ---------------------------------------------
+
+    const minMakanan = parseInt(document.getElementById("Input_BanyakMakanan").value) || 0;
+    const minMinuman = parseInt(document.getElementById("Input_BanyakMinuman").value) || 0;
+
+    // Eksekusi Algoritma
     console.log("Memulai Algoritma...");
     
     const hasilFinal = buatAcak(
@@ -58,55 +82,88 @@ function generateBingkisan() {
 
 
 
-
-
 // Method utama untuk menjalankan logika
 function buatAcak(jumlahBingkisan, maksimalHargaPerBingkisan, minimalJumlahMakanan, minimalJumlahMinuman) {
     
-    // Siapkan Data
-    const daftarJajanan = dapatkanDaftarJajanan().map(o => new Item(
-        o.id, o.nama, o.harga, o.jumlah, o.rasa, o.tipe
-    ));
+    // Ambil data dan ekspansi node nya, untuk memecah stock per itemnya
+    // Kita loop manual untuk handle Qty
+    const dataMentah = dapatkanDaftarJajanan();
+    let daftarJajanan = [];
 
-    // Step 1: Bangun Graf Konflik
+    dataMentah.forEach(itemAsli => {
+        // Ambil Qty, default 1
+        let qty = itemAsli.jumlah || 1;
+        
+        // Loop sebanyak Qty untuk memecah item jadi node unik
+        for (let i = 0; i < qty; i++) {
+            let idUnik = itemAsli.id + "_" + i; // ID jadi unik: 101_0, 101_1
+            daftarJajanan.push(new Item(
+                idUnik, itemAsli.nama, itemAsli.harga, 1, itemAsli.rasa, itemAsli.tipe
+            ));
+        }
+    });
+
+    // Sebelum masuk graph, kita scramble dulu urutannya jadi Makan, Minum, Makan...
+    // Agar Welsh-Powell mengambil item secara berimbang.
+    // Untuk menghindari ketidakseimbangan, misalnya setelah diwarnai, kelompok warna 1 berisi makanan semua, atau sebaliknya
+    // Sehingga nanti akhirnya tidak ditemukan komposisi valid.
+    daftarJajanan = urutkanSelangSeling(daftarJajanan);
+
+    // Bangun Graf Konflik
     const graf = bangunGrafKonflik(daftarJajanan);
 
-    // Step 2: Lakukan Pewarnaan (Welsh-Powell)
+    // Lakukan Pewarnaan
     const hasilWarna = welshPowellColoring(daftarJajanan, graf);
+    console.log("Hasil Coloring (Smart):", hasilWarna);
 
-    console.log("Hasil Coloring:", hasilWarna);
-
-    // Step 3: Kelompokkan item per warna
-    // Hasilnya misal: Warna 1=[A,B], Warna 2=[C,D].
+    // Kelompokkan item per warna
     const grupPerWarna = kelompokkanPerWarna(daftarJajanan, hasilWarna);
     
-    // Step 4: Optimasi Isi Setiap Warna
-    const kandidatBingkisan = grupPerWarna.map((grup, index) => {
+    // Optimasi Isi Setiap Warna (Potong Budget)
+    const kandidatBingkisan = grupPerWarna.map(grup => {
         return optimalkanGrup(grup, maksimalHargaPerBingkisan); 
     });
 
-    // Step 5: Validasi Kelengkapan (Makanan/Minuman)
-    // Kita cek apakah setiap warna memenuhi syarat jumlah minimal
+    // Validasi Kelengkapan
     const bingkisanValid = kandidatBingkisan.filter(b => 
         validasiKomposisi(b, minimalJumlahMakanan, minimalJumlahMinuman)
     );
 
     console.log("Kandidat Valid:", bingkisanValid);
 
-    // Step 6: Cek Ketersediaan
-    // Kalau ternyata hasil pewarnaan cuma menghasilkan 2 warna,
-    // padahal user minta 5 bingkisan, kita harus handle.
     if (bingkisanValid.length === 0) {
-        console.warn("Gagal membuat bingkisan yang memenuhi syarat budget/komposisi.");
+        // Return array kosong agar Solver tahu ini gagal
         return [];
     }
-
-    // Step 7: Pilih Bingkisan Terbaik (Finalisasi)
-    // Kita ambil N bingkisan terbaik dari hasil pewarnaan tadi
-    // Kalau kurang, kita duplikasi (random pick) dari yang ada
+    
+    // Lalu susun hasil akhir sesuai jumlah permintaan user
     const bingkisanFinal = buatBingkisanFinal(jumlahBingkisan, bingkisanValid);
 
     return bingkisanFinal;
+}
+
+/**
+ * Method helper untuk mengurutkan selang seling input
+ * Mengubah urutan agar konflik sejajar tidak bertemu.
+ * Makanan: [A, B], Minuman: [C, D]
+ * Hasil: [A, D, B, C] (Minuman dibalik)
+ */
+function urutkanSelangSeling(items) {
+    const makanan = items.filter(i => i.tipe === 'makanan');
+    
+    // Reverse minuman agar pola konfliknya tidak sejajar dengan makanan
+    // Contoh: Roti(Coklat) jangan langsung ketemu Susu(Coklat).
+    // Tapi ketemu Teh(Vanilla) dulu dari urutan belakang.
+    const minuman = items.filter(i => i.tipe === 'minuman').reverse(); 
+    
+    const hasil = [];
+    const maxLen = Math.max(makanan.length, minuman.length);
+
+    for (let i = 0; i < maxLen; i++) {
+        if (i < makanan.length) hasil.push(makanan[i]);
+        if (i < minuman.length) hasil.push(minuman[i]);
+    }
+    return hasil;
 }
 
 /**
@@ -181,8 +238,6 @@ function bangunGrafKonflik(daftarJajanan) {
     return graf; 
 }
 
-
-
 /**
  * Method kedua adalah algoritma welsh-powell
  * *Tujuan: Mewarnai graf sedemikian rupa sehingga tidak ada dua simpul bertetangga yang memiliki warna sama.
@@ -197,79 +252,93 @@ function bangunGrafKonflik(daftarJajanan) {
  */
 function welshPowellColoring(daftarJajanan, graf) {
 
-    // Hitung derajat setiap vertex
-    // Kita butuh array objek biar bisa disort
-    const vertices = daftarJajanan.map(item => {
+    // Kita mapping array jajanan menjadi array objek yang lebih detail
+    const vertices = daftarJajanan.map((item, index) => {
+        // Pastikan ID berupa string agar cocok dengan key di object graf
         const idStr = String(item.id);
         
-        // Ambil jumlah tetangga dari graf. Jika tidak ada di graf (isolated), degree = 0
+        // Ambil jumlah musuh (degree) dari graf. 
+        // Jika item tidak punya musuh (undefined), anggap degree 0.
         const degree = graf[idStr] ? graf[idStr].size : 0;
         
-        return { id: idStr, degree: degree };
+        return { 
+            id: idStr,           // ID Unik Item (contoh: '101_0')
+            degree: degree,      // Jumlah Konflik (cth: 1)
+            originalIndex: index // Simpan nomor urut antrian asli
+        };
     });
 
-    // Urutkan vertex berdasarkan derajat tertinggi (Descending)
-    // Item dengan konflik terbanyak harus diprioritaskan untuk diwarnai duluan.
-    vertices.sort((a, b) => b.degree - a.degree);
-
-    // Buat map warna nya
-    // key = ID Item, value = ID Warna (0, 1, 2, ...)
-    const warnaMap = {}; 
-    
-    // Counter untuk ID warna, dimulai dari 0 (Warna 1)
-    let currentColor = 0;
-
-    // Loop untuk mewarnai vertex
-    for (let i = 0; i < vertices.length; i++) {
-        const vertexV = vertices[i];
-
-        // Jika vertex ini sudah punya warna, lewati.
-        if (warnaMap[vertexV.id] !== undefined) {
-            continue;
+    // Proses Sorting
+    // Aturan Welsh-Powell adalah urutkan dari Degree tertinggi ke terendah.
+    vertices.sort((a, b) => {
+        
+        // Cek Prioritas Utama: DEGREE (Jumlah Konflik)
+        if (b.degree !== a.degree) {
+            // Urutkan Descending (Besar ke Kecil)
+            // Item yang paling banyak konflik harus diwarnai duluan
+            return b.degree - a.degree; 
         }
 
-        // Mulai Warna Baru
-        // Kasih warna pada vertex V (Vertex dengan derajat tertinggi saat ini)
+        // Jika Degree-nya sama
+        // Paksa urutkan berdasarkan 'originalIndex' (Ascending).
+        // Ini menjaga pola "Makan-Minum-Makan-Minum" yang sudah disusun sebelumnya.
+        return a.originalIndex - b.originalIndex; 
+    });
+
+    // Proses Pewarnaan
+    const warnaMap = {};     // Tempat menyimpan hasil: { "ID_Item": AngkaWarna }
+    let currentColor = 0;    // Mulai dari Warna ke-0 (Wadah 1)
+
+    // Selama masih ada vertex yang belum kebagian warna
+    for (let i = 0; i < vertices.length; i++) {
+        const vertexV = vertices[i]; // Ambil kandidat vertex utama
+
+        // Jika vertex ini sudah punya warna, skip.
+        if (warnaMap[vertexV.id] !== undefined) {
+            continue; 
+        }
+
+        // Beri warna baru pada vertex utama ini
         warnaMap[vertexV.id] = currentColor;
 
-        // Cari Vertex Lain untuk digabung (Independent Set)
-        // Kita cari vertex lain (U) yang:
-        // - Belum punya warna
-        // - TIDAK bertetangga dengan V
-        // - TIDAK bertetangga dengan vertex lain yang sudah masuk di currentColor ini
-        
+        // Cari item di kelompok sama
+        // Loop vertex sisanya untuk mencari siapa yang bisa nebeng di warna ini
         for (let j = i + 1; j < vertices.length; j++) {
-            const vertexU = vertices[j];
+            const vertexU = vertices[j]; // Kandidat teman
 
-            // Syarat pertama: Skip jika sudah berwarna
+            // Syarat A: Dia belum punya warna
             if (warnaMap[vertexU.id] !== undefined) continue;
 
-            // Syarat kedua: Cek Konflik
-            // Apakah vertexU bertetangga dengan SIAPAPUN yang sudah ada di currentColor?
+            // Syarat B: Cek Konflik (Apakah dia musuh vertexV atau musuh anggota lain?)
+            // Ambil daftar musuh si kandidat (vertexU)
             const tetanggaU = graf[vertexU.id];
-            let aman = true;
+            let aman = true; // Asumsikan aman dulu
 
-            // Cek terhadap semua vertex yang SUDAH diberi warna 'currentColor'
+            // Cek satu per satu anggota yang sudah ada di currentColor
             for (const existingId in warnaMap) {
+                // Hanya cek yang warnanya sama dengan warna saat ini
                 if (warnaMap[existingId] === currentColor) {
-                    // Jika U bertetangga dengan salah satu member grup ini, maka U gagal masuk.
+                    
+                    // Jika kandidat (U) punya hubungan konflik dengan anggota (existingId)
                     if (tetanggaU && tetanggaU.has(existingId)) {
-                        aman = false;
-                        break; // Konflik ditemukan, berhenti loop
+                        aman = false; // Gagal, dia musuh
+                        break;        // Hentikan pengecekan, cari kandidat lain
                     }
                 }
             }
 
-            // Jika aman (tidak ada konflik), masukkan U ke warna ini
+            // Jika setelah dicek ternyata aman (tidak konflik dengan siapapun di grup ini)
             if (aman) {
+                // Masukkan dia ke warna (kelompok) ini
                 warnaMap[vertexU.id] = currentColor;
             }
         }
 
-        // Pindah ke warna berikutnya untuk vertex sisa
+        // Setelah satu putaran warna selesai, ganti ke warna berikutnya (wadah baru)
         currentColor++;
     }
 
+    // Kembalikan peta warna ke fungsi utama
     return warnaMap;
 }
 
