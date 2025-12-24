@@ -7,29 +7,45 @@
  */
 const Solver = {
     generateBingkisan: function() {
-
-        // Ambil Data Jajanan dari script.js
+        // Ambil Data Jajanan
         const daftarMentah = dapatkanDaftarJajanan();
-        
         if (!daftarMentah || daftarMentah.length === 0) {
             alert("Data kosong! Masukkan jajanan dulu.");
             return;
         }
 
-        // Ambil Config dari Element HTML
+        // Ambil Config
         const jumlahBingkisan = parseInt(document.getElementById("Input_BanyakBingkisan").value) || 1;
         
-        // Bersihkan input harga dari format "Rp" menjadi angka
+        // Mendapatkan harga budget
         const inputHargaEl = document.getElementById("Input_MaksHargaBingkisan");
-        // Prioritaskan valueInt dari script.js, kalau gak ada baru parse manual
-        const maxBudget = inputHargaEl.valueInt || parseInt(inputHargaEl.value.replace(/[^0-9]/g, '')) || 0;
+        let rawHarga = inputHargaEl.value; // Contoh: "Rp 25.000,00"
         
+        // Buang angka di belakang koma (jika ada koma)
+        // Kita split berdasarkan koma, lalu ambil bagian depannya saja
+        if (rawHarga.includes(',')) {
+            rawHarga = rawHarga.split(',')[0];
+        }
+
+        // Sekarang isinya tinggal "Rp 25.000", baru bersihkan angka lain
+        const bersihHarga = rawHarga.replace(/[^0-9]/g, ''); 
+        
+        // Ubah jadi integer
+        const maxBudget = parseInt(bersihHarga) || 0;
+
+        // // DEBUGGING
+        // console.log("=== CEK BUDGET REVISI ===");
+        // console.log("Input Awal:", inputHargaEl.value);
+        // console.log("Setelah Potong Koma:", rawHarga);
+        // console.log("Budget Final:", maxBudget);
+        // console.log("=========================");
+        // // --------------------------------------
+
         const minMakanan = parseInt(document.getElementById("Input_BanyakMakanan").value) || 0;
         const minMinuman = parseInt(document.getElementById("Input_BanyakMinuman").value) || 0;
 
-        // PANGGIL LOGIKA UTAMA (buatAcak)
+        // Kerjakan logika utama
         console.log("Memulai Algoritma...");
-        
         const hasilFinal = buatAcak(
             jumlahBingkisan, 
             maxBudget, 
@@ -37,7 +53,7 @@ const Solver = {
             minMinuman
         );
 
-        // TAMPILKAN HASIL
+        // Tampilkan hasilnya
         console.log("=== HASIL FINAL ===");
         console.log(hasilFinal);
 
@@ -56,52 +72,77 @@ const Solver = {
 
 
 
-
+// ! Unccoment kalau sudah fix
 // Method utama untuk menjalankan logika
 function buatAcak(jumlahBingkisan, maksimalHargaPerBingkisan, minimalJumlahMakanan, minimalJumlahMinuman) {
     
-    // Siapkan Data
-    const daftarJajanan = dapatkanDaftarJajanan().map(o => new Item(
-        o.id, o.nama, o.harga, o.jumlah, o.rasa, o.tipe
-    ));
+    // Kita ambil data mentah dari script.js
+    const dataMentah = dapatkanDaftarJajanan();
+    const daftarJajanan = [];
 
-    // Step 1: Bangun Graf Konflik
+    // Loop setiap item mentah
+    dataMentah.forEach(itemAsli => {
+        // Jika user minta 5 Coklat, kita buat 5 object Coklat yang berbeda (Node Expansion)
+        // Agar setiap coklat dianggap sebagai vertex yang unik di dalam graf
+        let qty = itemAsli.jumlah || 1;
+        
+        for (let i = 0; i < qty; i++) {
+            // Kita buat ID unik, misal: "101_0", "101_1", "101_2"
+            // Supaya graf bisa membedakan Coklat yang ke-1 dan Coklat yang ke-2
+            let idUnik = itemAsli.id + "_" + i;
+
+            // Masukkan ke array daftarJajanan
+            daftarJajanan.push(new Item(
+                idUnik,           // ID Baru (String unik)
+                itemAsli.nama,    // Nama tetap sama
+                itemAsli.harga,   
+                1,                // Di dalam graf, dia dihitung 1 unit
+                itemAsli.rasa, 
+                itemAsli.tipe
+            ));
+        }
+    });
+
+    // Cek apakah data kosong setelah expand
+    if (daftarJajanan.length === 0) return [];
+
+    // Bangun Graf Konflik
+    // (Karena IDnya sudah unik "ID_0", "ID_1", graf akan menganggap mereka item berbeda
+    // tapi karena Rasanya sama, mereka akan saling dihubungkan edge konfliknya.
+    // Hasilnya, Welsh-Powell akan memaksa Coklat_1, Coklat_2, dst dipisahkan warna dan bingkisannya)
     const graf = bangunGrafKonflik(daftarJajanan);
 
-    // Step 2: Lakukan Pewarnaan (Welsh-Powell)
+    // Lakukan Pewarnaan (Welsh-Powell)
     const hasilWarna = welshPowellColoring(daftarJajanan, graf);
 
-    console.log("Hasil Coloring:", hasilWarna);
+    console.log("Hasil Coloring (Qty Handle):", hasilWarna);
 
-    // Step 3: Kelompokkan item per warna
-    // Hasilnya misal: Warna 1=[A,B], Warna 2=[C,D].
+    // Kelompokkan item per warna
     const grupPerWarna = kelompokkanPerWarna(daftarJajanan, hasilWarna);
     
-    // Step 4: Optimasi Isi Setiap Warna
+    // Optimasi Isi Setiap Warna (Greedy)
     const kandidatBingkisan = grupPerWarna.map((grup, index) => {
         return optimalkanGrup(grup, maksimalHargaPerBingkisan); 
     });
 
-    // Step 5: Validasi Kelengkapan (Makanan/Minuman)
-    // Kita cek apakah setiap warna memenuhi syarat jumlah minimal
+    // Validasi Kelengkapan (Makanan/Minuman)
     const bingkisanValid = kandidatBingkisan.filter(b => 
         validasiKomposisi(b, minimalJumlahMakanan, minimalJumlahMinuman)
     );
 
     console.log("Kandidat Valid:", bingkisanValid);
 
-    // Step 6: Cek Ketersediaan
-    // Kalau ternyata hasil pewarnaan cuma menghasilkan 2 warna,
-    // padahal user minta 5 bingkisan, kita harus handle.
+    // Cek Ketersediaan
     if (bingkisanValid.length === 0) {
         console.warn("Gagal membuat bingkisan yang memenuhi syarat budget/komposisi.");
         return [];
     }
 
-    // Step 7: Pilih Bingkisan Terbaik (Finalisasi)
-    // Kita ambil N bingkisan terbaik dari hasil pewarnaan tadi
-    // Kalau kurang, kita duplikasi (random pick) dari yang ada
-    const bingkisanFinal = buatBingkisanFinal(jumlahBingkisan, bingkisanValid);
+    // Pilih Bingkisan Terbaik (Finalisasi)
+    // Karena kita sudah expand Qty, bingkisan final akan mengambil item-item unik tersebut.
+    // Misal Bingkisan 1 dapat "Coklat_0", Bingkisan 2 dapat "Coklat_1".
+    const bestItems = pilihBestCombination(bingkisanValid, maksimalHargaPerBingkisan);
+    const bingkisanFinal = buatBingkisanFinal(jumlahBingkisan, bingkisanValid, bestItems);
 
     return bingkisanFinal;
 }
@@ -179,7 +220,7 @@ function bangunGrafKonflik(daftarJajanan) {
 }
 
 
-
+// ! WelshPowell Coloring asli, uncomment kalau udah fix
 /**
  * Method kedua adalah algoritma welsh-powell
  * *Tujuan: Mewarnai graf sedemikian rupa sehingga tidak ada dua simpul bertetangga yang memiliki warna sama.
@@ -205,9 +246,15 @@ function welshPowellColoring(daftarJajanan, graf) {
         return { id: idStr, degree: degree };
     });
 
-    // Urutkan vertex berdasarkan derajat tertinggi (Descending)
-    // Item dengan konflik terbanyak harus diprioritaskan untuk diwarnai duluan.
-    vertices.sort((a, b) => b.degree - a.degree);
+    // 2. Sorting: Urutkan vertex berdasarkan derajat tertinggi (Descending)
+    // Jika degree SAMA, kita acak posisinya (Random Tie-Breaker).
+    // Ini mencegah algoritma "terjebak" mengelompokkan item yang tipe-nya sama semua.
+    vertices.sort((a, b) => {
+        if (b.degree !== a.degree) {
+            return b.degree - a.degree; // Prioritas utama tetapDegree Besar
+        }
+        return 0.5 - Math.random(); // yang kedua Acak aja biar variatif
+    });
 
     // Buat map warna nya
     // key = ID Item, value = ID Warna (0, 1, 2, ...)
@@ -269,6 +316,7 @@ function welshPowellColoring(daftarJajanan, graf) {
 
     return warnaMap;
 }
+
 
 /**
  * Method ketiga buat pengelompokkan warnanya
@@ -370,26 +418,54 @@ function optimalkanGrup(grup, maxBudget) {
     return hasilValid;
 }
 
-/**
- * Method kelimat untuk validasi komposisinya
- * Tujuan: Mengecek apakah bingkisan memenuhi syarat minimal jumlah makanan/minuman.
- * @param {Array<Object>} items - Kandidat bingkisan
- * @param {number} minMakan - Syarat minimal makanan
- * @param {number} minMinum - Syarat minimal minuman
- * @returns {boolean} - True jika valid, False jika tidak
- */
+// ! Validasi komposisi asli, tolong uncomment kalau udah beres ngodingnya
+// /**
+//  * Method kelimat untuk validasi komposisinya
+//  * Tujuan: Mengecek apakah bingkisan memenuhi syarat minimal jumlah makanan/minuman.
+//  * @param {Array<Object>} items - Kandidat bingkisan
+//  * @param {number} minMakan - Syarat minimal makanan
+//  * @param {number} minMinum - Syarat minimal minuman
+//  * @returns {boolean} - True jika valid, False jika tidak
+//  */
+// function validasiKomposisi(items, minMakan, minMinum) {
+//     let countMakan = 0;
+//     let countMinum = 0;
+
+//     // Hitung jumlah tipe
+//     for (const item of items) {
+//         if (item.tipe === "makanan") countMakan++;
+//         if (item.tipe === "minuman") countMinum++;
+//     }
+
+//     // Kembalikan true jika kedua syarat terpenuhi
+//     return countMakan >= minMakan && countMinum >= minMinum;
+// }
+
 function validasiKomposisi(items, minMakan, minMinum) {
     let countMakan = 0;
     let countMinum = 0;
 
-    // Hitung jumlah tipe
     for (const item of items) {
         if (item.tipe === "makanan") countMakan++;
         if (item.tipe === "minuman") countMinum++;
     }
+    
+    // --- CCTV DEBUGGING ---
+    console.log(`🔍 Cek Kandidat (Total Harga: ${items.reduce((a,b)=>a+b.harga,0)}):`);
+    console.log(`   👉 Isi: [${items.map(i => i.nama).join(", ")}]`);
+    console.log(`   📊 Stats: Makanan=${countMakan}/${minMakan}, Minuman=${countMinum}/${minMinum}`);
 
-    // Kembalikan true jika kedua syarat terpenuhi
-    return countMakan >= minMakan && countMinum >= minMinum;
+    if (countMakan < minMakan) {
+        console.warn("   ❌ DITOLAK: Kurang Makanan!");
+        return false;
+    }
+    if (countMinum < minMinum) {
+        console.warn("   ❌ DITOLAK: Kurang Minuman!");
+        return false;
+    }
+    
+    console.log("   ✅ DITERIMA: Komposisi Pas!");
+    return true;
 }
 
 /**
