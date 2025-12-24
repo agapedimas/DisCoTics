@@ -5,53 +5,56 @@
  * Bagian ini untuk mengambil data dari input HTML,
  * lalu mengirimnya ke fungsi logika 'buatAcak' di bawah.
  */
-const Solver = {
-    generateBingkisan: function() {
 
-        // Ambil Data Jajanan dari script.js
-        const daftarMentah = dapatkanDaftarJajanan();
-        
-        if (!daftarMentah || daftarMentah.length === 0) {
-            alert("Data kosong! Masukkan jajanan dulu.");
-            return;
-        }
-
-        // Ambil Config dari Element HTML
-        const jumlahBingkisan = parseInt(document.getElementById("Input_BanyakBingkisan").value) || 1;
-        
-        // Bersihkan input harga dari format "Rp" menjadi angka
-        const inputHargaEl = document.getElementById("Input_MaksHargaBingkisan");
-        // Prioritaskan valueInt dari script.js, kalau gak ada baru parse manual
-        const maxBudget = inputHargaEl.valueInt || parseInt(inputHargaEl.value.replace(/[^0-9]/g, '')) || 0;
-        
-        const minMakanan = parseInt(document.getElementById("Input_BanyakMakanan").value) || 0;
-        const minMinuman = parseInt(document.getElementById("Input_BanyakMinuman").value) || 0;
-
-        // PANGGIL LOGIKA UTAMA (buatAcak)
-        console.log("Memulai Algoritma...");
-        
-        const hasilFinal = buatAcak(
-            jumlahBingkisan, 
-            maxBudget, 
-            minMakanan, 
-            minMinuman
-        );
-
-        // TAMPILKAN HASIL
-        console.log("=== HASIL FINAL ===");
-        console.log(hasilFinal);
-
-        if (hasilFinal.length === 0) {
-            alert("Gagal menyusun bingkisan. Coba naikkan budget atau kurangi syarat jumlah.");
-        } else {
-            // Tampilkan alert sukses
-            let pesan = `Berhasil menyusun ${hasilFinal.length} bingkisan!\n`;
-            pesan += "Cek Console (F12) untuk melihat detail isinya.";
-            alert(pesan);
-        }
+function generateBingkisan() {
+    // Ambil Data Jajanan dari script.js
+    const daftarMentah = dapatkanDaftarJajanan();
+    
+    if (!daftarMentah || daftarMentah.length === 0) {
+        alert("Data kosong! Masukkan jajanan dulu.");
+        return;
     }
-};
 
+    // Ambil Config dari Element HTML
+    const jumlahBingkisan = parseInt(Input_BanyakBingkisan.value) || 1;
+    
+    // Prioritaskan valueInt dari script.js, kalau gak ada baru parse manual
+    const maxBudget = Input_MaksHargaBingkisan.valueInt;
+    const minMakanan = parseInt(Input_BanyakMakanan.value) || 0;
+    const minMinuman = parseInt(Input_BanyakMinuman.value) || 0;
+
+    // PANGGIL LOGIKA UTAMA (buatAcak)
+    console.log("Memulai Algoritma...");
+    
+    const hasilFinal = buatAcak(
+        jumlahBingkisan, 
+        maxBudget, 
+        minMakanan, 
+        minMinuman
+    );
+
+    // TAMPILKAN HASIL
+    console.log("Hasil Final", hasilFinal);
+
+    if (hasilFinal.length === 0) {
+        Components.Notification.Send({ 
+            Id: "bingkisan_gagal",
+            Title: "Gagal Menyusun Bingkisan", 
+            Message: "Coba naikkan budget atau kurangi syarat jumlah makanan/minuman.", 
+            Icon: "\ufe60" // Icon silang dalam unicode font SF Symbols 
+        });
+    } else {
+        // Tampilkan alert sukses
+        Components.Notification.Send({ 
+            Id: "bingkisan_berhasil",
+            Title: "Berhasil Menyusun Bingkisan", 
+            Message: "Sebanyak " + hasilFinal.length + " bingkisan telah disusun secara bervariasi.", 
+            Icon: "\uef1c" // Icon centang dalam unicode font SF Symbols 
+        });
+    }
+
+    return hasilFinal;
+}
 
 
 

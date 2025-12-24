@@ -212,6 +212,104 @@ Button_SelesaiFormJajanan.onclick = function() {
     PopOver_FormJajanan.close();
 }
 
+// Tombol 'Buat Kombinasi Bingkisan' untuk meng-generate kombinasi bingkisan dari algorithm.js
+Button_BuatKombinasiBingkisan.onclick = function() {
+    const daftarBingkisan = generateBingkisan();
+    Section_HasilBingkisan.innerHTML = null;
+
+    for (const bingkisan of daftarBingkisan)
+        renderBingkisan(bingkisan);
+}
+
+/**
+ * Mengubah object 'Bingkisan' menjadi object HTML, lalu ditambahkan
+ * ke tampilan daftar hasil bingkisan
+ * @param { Bingkisan } bingkisan 
+ */
+function renderBingkisan(bingkisan) {
+    const idElement = document.createElement("span");
+    idElement.classList.add("id");
+    idElement.innerText = "Bingkisan " + bingkisan.id;
+
+    const containerJajananElement = document.createElement("div");
+    containerJajananElement.classList.add("daftarjajanan");
+
+    const container = document.createElement("div");
+    container.classList.add("bingkisan");
+    container.append(idElement);
+
+    let totalHarga = 0;
+    let totalMinuman = 0;
+    let totalMakanan = 0;
+
+    for (const jajanan of bingkisan.daftarJajanan) {
+        totalHarga += jajanan.harga;
+        if (jajanan.tipe == "makanan")
+            totalMakanan++;
+        else if (jajanan.tipe == "minuman")
+            totalMinuman++;
+
+        const nameElement = document.createElement("span");
+        nameElement.classList.add("name");
+        nameElement.innerText = jajanan.nama;
+
+        const priceElement = document.createElement("span");
+        priceElement.classList.add("price");
+        priceElement.innerText = formatCurrency(jajanan.harga);
+
+        const typeElement = document.createElement("span");
+        typeElement.classList.add("type");
+        typeElement.innerHTML = jajanan.tipe;
+
+        const flavorElement = document.createElement("span");
+        flavorElement.classList.add("flavor");
+        flavorElement.innerText = jajanan.rasa;
+
+        const descriptionElement = document.createElement("div");
+        descriptionElement.classList.add("description");
+        descriptionElement.append(priceElement);
+        descriptionElement.append("•");
+        descriptionElement.append(typeElement);
+        descriptionElement.append("•");
+        descriptionElement.append(flavorElement);
+
+        const jajananElement = document.createElement("div");
+        jajananElement.classList.add("jajanan");
+        jajananElement.append(nameElement);
+        jajananElement.append(descriptionElement);
+
+        containerJajananElement.append(jajananElement);
+    }
+
+    const totalHargaElement = document.createElement("span");
+    totalHargaElement.classList.add("totalharga");
+    totalHargaElement.innerText = formatCurrency(totalHarga);
+    totalHargaElement.setAttribute("ad-tooltip", "Total harga");
+
+    const totalMakananElement = document.createElement("span");
+    totalMakananElement.classList.add("totalmakanan");
+    totalMakananElement.innerText = totalMakanan;
+    totalMakananElement.setAttribute("ad-tooltip", "Total makanan");
+
+    const totalMinumanElement = document.createElement("span");
+    totalMinumanElement.classList.add("totalminuman");
+    totalMinumanElement.innerText = totalMinuman;
+    totalMinumanElement.setAttribute("ad-tooltip", "Total minuman");
+
+    const totalElement = document.createElement("div");
+    totalElement.classList.add("total");
+    totalElement.append(totalHargaElement);
+    totalElement.append(totalMakananElement);
+    totalElement.append(totalMinumanElement);
+
+    container.append(totalElement);
+    container.append(containerJajananElement);
+
+    Section_HasilBingkisan.append(container);
+
+    console.log(container)
+}
+
 // Mendaftarkan event input supaya dapat di-formatting dengan mata uang
 registerCurrencyInput(Input_Harga);
 registerCurrencyInput(Input_MaksHargaBingkisan);
@@ -220,12 +318,13 @@ registerCurrencyInput(Input_MaksHargaBingkisan);
 Button_TambahRandom.onclick = function() {
     const rasa = [...Select_Rasa.options];
     const tipe = [...Select_Tipe.options];
+    const indeksTerakhir = List_DaftarJajanan.children.length - 1;
 
-    for (let i = 0; i < 5; i++) {
+    for (let i = indeksTerakhir; i < indeksTerakhir + 5; i++) {
         const item = new Item(
             null,
-            randomizeString(),
-            Math.floor(Math.random() * 25000) + 5000, // range: 5,000 s.d. 30,000
+            "Jajanan " + (i+1), 
+            Math.round(Math.random() * 25000 / 250) * 250 + 5000, // range: 5,000 s.d. 30,000
             Math.floor(Math.random() * 100),
             rasa[Math.floor(Math.random() * rasa.length)].value,
             tipe[Math.floor(Math.random() * tipe.length)].value
@@ -255,14 +354,16 @@ Button_Bersihkan.onclick = function() {
 
 
 function formatCurrency(number) {
-    let result = number.toLocaleString(document.documentElement.lang, { style: "currency", currency: "IDR" });
+    let result = number.toLocaleString("id", { style: "currency", currency: "IDR" });
     result = result.replace(/IDR\s/, "Rp");
     return result;
 }
 
 function registerCurrencyInput(input) {
+    input.valueInt = 0;
+
     input.addEventListener("focus", function() {
-        this.value = this.value.replace(/[^0-9|.]/g, "");
+        this.value = this.value.replace(/[^0-9|,]/g, "");
         this.valueInt = parseInt(this.value || 0);
         this.value = this.valueInt + "";
     });
@@ -273,7 +374,7 @@ function registerCurrencyInput(input) {
     });
 
     input.addEventListener("blur", function() {
-        this.value = formatCurrency(parseInt(this.value.replace(/[^0-9|.]/g, "")) || 0);
+        this.value = formatCurrency(parseInt(this.value.replace(/[^0-9|,]/g, "")) || 0);
     });
 }
 
