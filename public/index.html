@@ -98,7 +98,49 @@
                 </div>
             </div>
         </div>
+        <div class="popover" id="PopOver_FormJajananEdit">
+            <div class="title">
+                <button class="plain" id="Button_BatalFormJajananEdit">Batal</button>
+                <span>Edit Jajanan</span>
+                <button class="plain" id="Button_SelesaiFormJajananEdit">Selesai</button>
+            </div>
+            <div class="content">
+                <div class="list" id="List_FormJajananEdit">
+                    <div class="stack">
+                        <span>Nama</span>
+                        <input id="Input_NamaEdit" placeholder="cth: Cheetos" type="text" class="plain"/>
+                    </div>
+                    <div class="stack">
+                        <span>Harga</span>
+                        <input id="Input_HargaEdit" placeholder="cth: Rp25.000,00" type="text" class="plain"/>
+                    </div>
+                    <div class="stack">
+                        <span>Jumlah</span>
+                        <input id="Input_JumlahEdit" type="number" class="plain" min="1"/>
+                    </div>
+                    <div class="stack">
+                        <span>Rasa</span>
+                        <select id="Select_RasaEdit" class="plain">
+                            <option value="coklat">Coklat</option>
+                            <option value="stroberi">Stroberi</option>
+                            <option value="vanilla">Vanilla</option>
+                            <option value="matcha">Matcha</option>
+                            <option value="mocha">Mocha</option>
+                            <option value="caramel">Caramel</option>
+                        </select>
+                    </div>
+                    <div class="stack">
+                        <span>Tipe</span>
+                        <select id="Select_TipeEdit" class="plain">
+                            <option value="makanan">Makanan</option>
+                            <option value="minuman">Minuman</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
         <script src="./scripts.js"></script>
+        <script src="./contextmenu.js"></script>
         <script src="./algorithm.js"></script>
     </body>
 </html>

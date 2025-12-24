@@ -48,7 +48,8 @@ function tampilkanDaftarJajanan() {
     
     for (const item of daftarJajanan) {
         const jajan = new Item(item.id, item.nama, item.harga, item.jumlah, item.rasa, item.tipe);
-        renderJajanan(jajan);
+        const jajananElement = renderJajanan(jajan);
+        List_DaftarJajanan.append(jajananElement);
     }
 }
 
@@ -90,7 +91,7 @@ function renderJajanan(jajan) {
     menuElement.classList.add("menu");
     menuElement.classList.add("icon");
     menuElement.classList.add("plain")
-    menuElement.innerText = "\uf6c1";
+    menuElement.innerText = "\uf153";
 
     const actionElement = document.createElement("div");
     actionElement.classList.add("action");
@@ -105,31 +106,12 @@ function renderJajanan(jajan) {
     containerElement.data = jajan;
 
     menuElement.onclick = function(event) {
-        if (event.shiftKey) {
-            hapusJajanan(jajan, containerElement);
-        }
-        else {
-            Components.ActionSheet.Open(
-            {
-                Title: "Yakin ingin menghapus jajanan '" + jajan.nama + "'?",
-                Description: "Tekan Shift dan tombol (-) secara bersamaan untuk menghapus tanpa konfirmasi.",
-                Actions: [
-                    { 
-                        Title: "Hapus", Type: "Options.Critical", 
-                        Action: o => 
-                        { 
-                            hapusJajanan(jajan, containerElement);
-                        } 
-                    },
-                    { 
-                        Title: "Batal", Type: "Footer"
-                    }
-                ]
-            });
-        }
+        menuElement.data = jajan;
+        menuElement.container = containerElement;
+        Components.ContextMenu.Open("MenuJajanan", menuElement, event);
     }
 
-    List_DaftarJajanan.append(containerElement);
+    return containerElement;
 }
 
 /**
@@ -138,14 +120,36 @@ function renderJajanan(jajan) {
  * @returns { boolean }
  */
 function tambahJajanan(jajanan) {
-    jajanan.id = new Date() * 1;
+    jajanan.id = randomizeString();
     let berhasil = true;
     
     const daftarJajanan = dapatkanDaftarJajanan();
     daftarJajanan.push(jajanan);
     localStorage.setItem("jajanan", JSON.stringify(daftarJajanan));
+          
+    const jajananElement = renderJajanan(jajan);
+    List_DaftarJajanan.append(jajananElement);
     
-    renderJajanan(jajanan);
+    return berhasil;
+}
+
+/**
+ * Mengedit salah satu jajanan dari database
+ * @param { Item } jajanan 
+ * @returns { boolean }
+ */
+function editJajanan(jajanan) {
+    let berhasil = true;
+    
+    const daftarJajanan = dapatkanDaftarJajanan();
+
+    let jajananDatabase = daftarJajanan.find(o => o.id == jajanan.id);
+
+    if (jajananDatabase == null)
+        return false;
+
+    Object.assign(jajananDatabase, jajanan);
+    localStorage.setItem("jajanan", JSON.stringify(daftarJajanan));
     
     return berhasil;
 }
@@ -212,13 +216,36 @@ Button_SelesaiFormJajanan.onclick = function() {
     PopOver_FormJajanan.close();
 }
 
+// Tombol 'Batal' dan 'Tambah' pada form 'Edit Jajanan'
+Button_BatalFormJajananEdit.onclick = function() {
+    PopOver_FormJajananEdit.close();
+}
+Button_SelesaiFormJajananEdit.onclick = function() {
+    const item = new Item(
+        PopOver_FormJajananEdit.data.id,
+        Input_NamaEdit.value.trim(),
+        Input_HargaEdit.valueInt || 0,
+        parseInt(Input_JumlahEdit.value) || 1,
+        Select_RasaEdit.value,
+        Select_TipeEdit.value
+    )
+
+    editJajanan(item);
+    const jajananElement = renderJajanan(item);
+    PopOver_FormJajananEdit.element.parentNode.replaceChild(jajananElement, PopOver_FormJajananEdit.element);
+
+    PopOver_FormJajananEdit.close();
+}
+
 // Tombol 'Buat Kombinasi Bingkisan' untuk meng-generate kombinasi bingkisan dari algorithm.js
 Button_BuatKombinasiBingkisan.onclick = function() {
     const daftarBingkisan = generateBingkisan();
     Section_HasilBingkisan.innerHTML = null;
 
-    for (const bingkisan of daftarBingkisan)
-        renderBingkisan(bingkisan);
+    for (const bingkisan of daftarBingkisan) {
+        const bingkisanElement = renderBingkisan(bingkisan);
+        Section_HasilBingkisan.append(bingkisanElement);
+    }
 }
 
 /**
@@ -234,9 +261,9 @@ function renderBingkisan(bingkisan) {
     const containerJajananElement = document.createElement("div");
     containerJajananElement.classList.add("daftarjajanan");
 
-    const container = document.createElement("div");
-    container.classList.add("bingkisan");
-    container.append(idElement);
+    const containerElement = document.createElement("div");
+    containerElement.classList.add("bingkisan");
+    containerElement.append(idElement);
 
     let totalHarga = 0;
     let totalMinuman = 0;
@@ -302,16 +329,15 @@ function renderBingkisan(bingkisan) {
     totalElement.append(totalMakananElement);
     totalElement.append(totalMinumanElement);
 
-    container.append(totalElement);
-    container.append(containerJajananElement);
+    containerElement.append(totalElement);
+    containerElement.append(containerJajananElement);
 
-    Section_HasilBingkisan.append(container);
-
-    console.log(container)
+    return containerElement;
 }
 
 // Mendaftarkan event input supaya dapat di-formatting dengan mata uang
 registerCurrencyInput(Input_Harga);
+registerCurrencyInput(Input_HargaEdit);
 registerCurrencyInput(Input_MaksHargaBingkisan);
 
 // Tombol 'Tambah Random' dan 'Bersihkan Daftar'
