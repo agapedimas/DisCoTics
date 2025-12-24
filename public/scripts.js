@@ -127,7 +127,7 @@ function tambahJajanan(jajanan) {
     daftarJajanan.push(jajanan);
     localStorage.setItem("jajanan", JSON.stringify(daftarJajanan));
           
-    const jajananElement = renderJajanan(jajan);
+    const jajananElement = renderJajanan(jajanan);
     List_DaftarJajanan.append(jajananElement);
     
     return berhasil;

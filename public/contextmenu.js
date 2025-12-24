@@ -6,6 +6,7 @@ Components.ContextMenu.Add("MenuJajanan",
             Action: function(element) {
                 Input_NamaEdit.value = element.data.nama;
                 Input_HargaEdit.value = formatCurrency(element.data.harga);
+                Input_HargaEdit.valueInt = parseInt(element.data.harga) || 0;
                 Input_JumlahEdit.value = element.data.jumlah;
                 Select_RasaEdit.value = element.data.rasa;
                 Select_TipeEdit.value = element.data.tipe;
@@ -24,7 +25,7 @@ Components.ContextMenu.Add("MenuJajanan",
                 Components.ActionSheet.Open(
                 {
                     Title: "Yakin ingin menghapus jajanan '" + jajan.nama + "'?",
-                    Description: "Tekan Shift dan tombol (-) secara bersamaan untuk menghapus tanpa konfirmasi.",
+                    Description: "Kamu bisa buat lagi kapan saja jika butuh.",
                     Actions: [
                         { 
                             Title: "Hapus", Type: "Options.Critical", 
