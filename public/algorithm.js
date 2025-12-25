@@ -1,24 +1,14 @@
-
-
-/**
- * OBJECT SOLVER (Jembatan HTML -> ALGORITMA)
- * Bagian ini untuk mengambil data dari input HTML,
- * lalu mengirimnya ke fungsi logika 'buatAcak' di bawah.
- */
-
 function generateBingkisan() {
     // Ambil Data Jajanan
     const daftarMentah = dapatkanDaftarJajanan();
     
     if (!daftarMentah || daftarMentah.length === 0) {
-        // Notifikasi aman (cek apakah library ada)
-        if (typeof Components !== 'undefined' && Components.Notification) {
-            Components.Notification.Send({ 
-                Id: "data_kosong", Title: "Data Kosong", Message: "Data kosong!", Icon: "\ufe60" 
-            });
-        } else {
-            alert("Data kosong! Masukkan jajanan dulu.");
-        }
+        Components.Notification.Send({ 
+            Id: "data_kosong", 
+            Title: "Data Kosong", 
+            Message: "Isi data dahulu sebelum generate.", 
+            Icon: "\ufe60" 
+        });
         return;
     }
 
@@ -27,18 +17,9 @@ function generateBingkisan() {
     
     // Parsing harga manual
     const inputHargaEl = document.getElementById("Input_MaksHargaBingkisan");
-    let rawHarga = inputHargaEl.value; // Ambil teks, "Rp 10.000,00"
-    
-    // Buang koma dan angka di belakangnya (Agar 10.000,00 tidak jadi 1 Juta)
-    if (rawHarga.includes(',')) {
-        rawHarga = rawHarga.split(',')[0]; 
-    }
-    
-    // Ambil angka saja (buang Rp dan Titik)
-    const bersihHarga = rawHarga.replace(/[^0-9]/g, ''); 
     
     // Convert ke Integer
-    const maxBudget = parseInt(bersihHarga) || 0; 
+    const maxBudget = inputHargaEl.valueInt; // Pake valueInt karena sudah dibuatkan methodnya di scripts.js
 
     // Debugging
     console.log(`Budget Final: ${maxBudget} (Input Asli: ${inputHargaEl.value})`);
