@@ -82,6 +82,7 @@ body {
 }
 
 
+#Text_HasilKombinasi,
 #Text_HasilBingkisan {
     display: block;
     font-size: 1.2em;
@@ -89,76 +90,78 @@ body {
     margin: 2em 0 1em;
 }
 
+#Section_HasilKombinasi,
 #Section_HasilBingkisan {
     display: grid;
     grid-auto-flow: column;
     gap: 0.5em;
     overflow-x: auto;
 }
-    #Section_HasilBingkisan .bingkisan {
-        display: grid;
-        background: var(--background-list);
-        border-radius: 12px;
-        padding: 1em;
-        gap: 0.25em;
-        align-content: start;
+
+.bingkisan {
+    display: grid;
+    background: var(--background-list);
+    border-radius: 12px;
+    padding: 1em;
+    gap: 0.25em;
+    align-content: start;
+}
+    .bingkisan .id {
+        font-size: 1.15em;
+        font-weight: 600;
     }
-        #Section_HasilBingkisan .bingkisan .id {
-            font-size: 1.15em;
-            font-weight: 600;
-        }
-        #Section_HasilBingkisan .bingkisan .total {
+    .bingkisan .total {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: auto max-content max-content;
+        gap: 1em;
+    }
+        .bingkisan .total .totalharga {
             display: grid;
             grid-auto-flow: column;
-            grid-auto-columns: auto max-content max-content;
-            gap: 1em;
+            grid-auto-columns: 1.25em max-content;
         }
-            #Section_HasilBingkisan .bingkisan .total .totalharga {
-                display: grid;
-                grid-auto-flow: column;
-                grid-auto-columns: 1.25em max-content;
-            }
-                #Section_HasilBingkisan .bingkisan .total .totalharga::before {
-                    content: "\f0f0";
-                    font-family: var(--font-icon);
-                }
-            #Section_HasilBingkisan .bingkisan .total .totalmakanan {
-                display: grid;
-                grid-auto-flow: column;
-                grid-auto-columns: 1.25em max-content;
-            }
-                #Section_HasilBingkisan .bingkisan .total .totalmakanan::before {
-                    content: "\f2f4";
-                    font-family: var(--font-icon);
-                }
-            #Section_HasilBingkisan .bingkisan .total .totalminuman {
-                display: grid;
-                grid-auto-flow: column;
-                grid-auto-columns: 1.25em max-content;
-            }
-            #Section_HasilBingkisan .bingkisan .total .totalminuman::before {
-                content: "\fdfa";
+            .bingkisan .total .totalharga::before {
+                content: "\f0f0";
                 font-family: var(--font-icon);
             }
-        #Section_HasilBingkisan .bingkisan .daftarjajanan {
-            border-top: 1px solid var(--border-context);
-            margin-top: 0.5em;
-            padding-top: 0.5em;
+        .bingkisan .total .totalmakanan {
             display: grid;
-            gap: 0.5em;
+            grid-auto-flow: column;
+            grid-auto-columns: 1.25em max-content;
         }
-        #Section_HasilBingkisan .bingkisan .daftarjajanan .jajanan {
+            .bingkisan .total .totalmakanan::before {
+                content: "\f2f4";
+                font-family: var(--font-icon);
+            }
+        .bingkisan .total .totalminuman {
             display: grid;
-            } 
-                #Section_HasilBingkisan .bingkisan .daftarjajanan .jajanan .description {
-                    display: grid;
-                    grid-auto-flow: column;
-                    grid-auto-columns: max-content;
-                    gap: 1ch;
-                    color: var(--foreground-description);
-                    font-size: 0.9em;
+            grid-auto-flow: column;
+            grid-auto-columns: 1.25em max-content;
+        }
+        .bingkisan .total .totalminuman::before {
+            content: "\fdfa";
+            font-family: var(--font-icon);
+        }
+    .bingkisan .daftarjajanan {
+        border-top: 1px solid var(--border-context);
+        margin-top: 0.5em;
+        padding-top: 0.5em;
+        display: grid;
+        gap: 0.5em;
+    }
+    .bingkisan .daftarjajanan .jajanan {
+        display: grid;
+        } 
+            .bingkisan .daftarjajanan .jajanan .description {
+                display: grid;
+                grid-auto-flow: column;
+                grid-auto-columns: max-content;
+                gap: 1ch;
+                color: var(--foreground-description);
+                font-size: 0.9em;
+            }
+                .bingkisan .daftarjajanan .jajanan .description .flavor,
+                .bingkisan .daftarjajanan .jajanan .description .type {
+                    text-transform: capitalize;
                 }
-                    #Section_HasilBingkisan .bingkisan .daftarjajanan .jajanan .description .flavor,
-                    #Section_HasilBingkisan .bingkisan .daftarjajanan .jajanan .description .type {
-                        text-transform: capitalize;
-                    }

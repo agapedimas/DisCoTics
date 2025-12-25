@@ -246,7 +246,7 @@ function bangunGrafKonflik(daftarJajanan) {
  * 2. Urutkan simpul berdasarkan derajat secara DESCENDING (terbesar ke terkecil).
  * 3. Ambil simpul pertama yang belum berwarna, beri warna baru.
  * 4. Cari simpul lain (non-adjacent) yang bisa dimasukkan ke warna yang sama.
- * @param {Array<Object>} daftarJajanan - Array objek Item
+ * @param {Array<Item>} daftarJajanan - Array objek Item
  * @param {Object.<string, Set<string>>} graf - Adjacency list dari bangunGrafKonflik 
  * @returns {Object.<string, number>} warnaMap - Mapping: Key=ID Item, Value = Angka Warna (0, 1, 2...)
  */

@@ -32,7 +32,7 @@ class Bingkisan {
 
 /**
  * Mengambil data daftar jajanan dari database
- * @returns { void }
+ * @returns { Array<Item> }
  */
 function dapatkanDaftarJajanan() {
     return JSON.parse(localStorage.getItem("jajanan")) || [];
@@ -239,10 +239,34 @@ Button_SelesaiFormJajananEdit.onclick = function() {
 
 // Tombol 'Buat Kombinasi Bingkisan' untuk meng-generate kombinasi bingkisan dari algorithm.js
 Button_BuatKombinasiBingkisan.onclick = function() {
-    const daftarBingkisan = generateBingkisan();
+    const hasilGenerasi = generateBingkisan();
     Section_HasilBingkisan.innerHTML = null;
 
-    for (const bingkisan of daftarBingkisan) {
+    const daftarWarna = [];
+    const daftarJajanan = dapatkanDaftarJajanan();
+
+    // Kelompokkan barang ke dalam setiap warna
+    // for (let idJajanan of Object.keys(hasilGenerasi.daftarKombinasi)) {
+    //     const warnaKelompok = hasilGenerasi.daftarKombinasi[idJajanan];
+
+    //     // Pada algorithm.js line 99 ada modifikasi id per item,
+    //     // yaitu ada suffix '_i', sehingga perlu di-trim terlebih dahulu
+    //     idJajanan = idJajanan.substring(0, idJajanan.indexOf("_"));
+
+    //     if (daftarWarna[warnaKelompok] == null)
+    //         daftarWarna[warnaKelompok] = [];
+
+    //     const jajanan = daftarJajanan.find(o => o.id == idJajanan);
+
+    //     if (jajanan == null)
+    //         continue;
+
+    //     daftarWarna[warnaKelompok].push(jajanan);
+    // }
+
+    // console.log(daftarWarna);
+
+    for (const bingkisan of hasilGenerasi) {
         const bingkisanElement = renderBingkisan(bingkisan);
         Section_HasilBingkisan.append(bingkisanElement);
     }
