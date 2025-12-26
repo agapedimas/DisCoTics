@@ -1,8 +1,14 @@
+/**
+ * @returns {{ 
+ *      daftarBingkisan: Array<Bingkisan>,
+ *      daftarPewarnaan: Array<Array<Item>>
+ * }}
+ */
 function generateBingkisan() {
     // Ambil Data Jajanan
     const daftarMentah = dapatkanDaftarJajanan();
     
-    if (!daftarMentah || daftarMentah.length === 0) {
+    if (daftarMentah.length === 0) {
         Components.Notification.Send({ 
             Id: "data_kosong", 
             Title: "Data Kosong", 
@@ -12,33 +18,21 @@ function generateBingkisan() {
         return;
     }
 
-    // Ambil Config Input
-    const jumlahBingkisan = parseInt(document.getElementById("Input_BanyakBingkisan").value) || 1;
+    // Ambil syarat-syarat bingkisan
+    const jumlahBingkisan = parseInt(Input_BanyakBingkisan.value) || 1;
+    const jumlahMakananMinimal = parseInt(Input_BanyakMakanan.value) || 0;
+    const jumlahMinumanMinimal = parseInt(Input_BanyakMinuman.value) || 0;
+    const budgetMaksimal = Input_MaksHargaBingkisan.valueInt; // Pake valueInt karena sudah dibuatkan methodnya di scripts.js
     
-    // Parsing harga manual
-    const inputHargaEl = document.getElementById("Input_MaksHargaBingkisan");
-    
-    // Convert ke Integer
-    const maxBudget = inputHargaEl.valueInt; // Pake valueInt karena sudah dibuatkan methodnya di scripts.js
-
-    // Debugging
-    console.log(`Budget Final: ${maxBudget} (Input Asli: ${inputHargaEl.value})`);
-    // ---------------------------------------------
-
-    const minMakanan = parseInt(document.getElementById("Input_BanyakMakanan").value) || 0;
-    const minMinuman = parseInt(document.getElementById("Input_BanyakMinuman").value) || 0;
-
-    // Eksekusi Algoritma
-    console.log("Memulai Algoritma...");
-    
+    // Lakukan pengacakan dan cari kombinasi yang mungkin
     const hasilFinal = buatAcak(
         jumlahBingkisan, 
-        maxBudget, 
-        minMakanan, 
-        minMinuman
+        budgetMaksimal, 
+        jumlahMakananMinimal, 
+        jumlahMinumanMinimal
     );
 
-    // TAMPILKAN HASIL
+    // Tampilkan hasil
     console.log("Hasil Final", hasilFinal);
 
     if (hasilFinal.length === 0) {
@@ -49,11 +43,10 @@ function generateBingkisan() {
             Icon: "\ufe60" // Icon silang dalam unicode font SF Symbols 
         });
     } else {
-        // Tampilkan alert sukses
         Components.Notification.Send({ 
             Id: "bingkisan_berhasil",
             Title: "Berhasil Menyusun Bingkisan", 
-            Message: "Sebanyak " + hasilFinal.length + " bingkisan telah disusun secara bervariasi.", 
+            Message: "Sebanyak " + hasilFinal.daftarBingkisan.length + " bingkisan telah disusun secara bervariasi.", 
             Icon: "\uef1c" // Icon centang dalam unicode font SF Symbols 
         });
     }
@@ -61,44 +54,54 @@ function generateBingkisan() {
     return hasilFinal;
 }
 
-
-
-// Method utama untuk menjalankan logika
+/**
+ * Method utama untuk menjalankan logika
+ * @param { number } jumlahBingkisan 
+ * @param { number } maksimalHargaPerBingkisan 
+ * @param { number } minimalJumlahMakanan 
+ * @param { number } minimalJumlahMinuman 
+ * @returns {{ 
+ *      daftarBingkisan: Array<Bingkisan>,
+ *      daftarPewarnaan: Array<Array<Item>>
+ * }}
+ */
 function buatAcak(jumlahBingkisan, maksimalHargaPerBingkisan, minimalJumlahMakanan, minimalJumlahMinuman) {
-    
     // Ambil data dan ekspansi node nya, untuk memecah stock per itemnya
     // Kita loop manual untuk handle Qty
     const dataMentah = dapatkanDaftarJajanan();
     let daftarJajanan = [];
 
-    dataMentah.forEach(itemAsli => {
-        // Ambil Qty, default 1
-        let qty = itemAsli.jumlah || 1;
-        
-        // Loop sebanyak Qty untuk memecah item jadi node unik
-        for (let i = 0; i < qty; i++) {
-            let idUnik = itemAsli.id + "_" + i; // ID jadi unik: 101_0, 101_1
+    for (const jajananAsli of dataMentah) {
+        // Setiap jajanan akan dipecah jadi satu per satu
+        for (let i = 0; i < jajananAsli.jumlah; i++) {
+            const idUnik = jajananAsli.id + "_" + i;
             daftarJajanan.push(new Item(
-                idUnik, itemAsli.nama, itemAsli.harga, 1, itemAsli.rasa, itemAsli.tipe
-            ));
+                idUnik,
+                jajananAsli.nama,
+                jajananAsli.harga,
+                1,
+                jajananAsli.rasa,
+                jajananAsli.tipe
+            ))
         }
-    });
+    }
 
     // Sebelum masuk graph, kita scramble dulu urutannya jadi Makan, Minum, Makan...
     // Agar Welsh-Powell mengambil item secara berimbang.
     // Untuk menghindari ketidakseimbangan, misalnya setelah diwarnai, kelompok warna 1 berisi makanan semua, atau sebaliknya
     // Sehingga nanti akhirnya tidak ditemukan komposisi valid.
-    daftarJajanan = urutkanSelangSeling(daftarJajanan);
+    // daftarJajanan = urutkanSelangSeling(daftarJajanan);
 
     // Bangun Graf Konflik
     const graf = bangunGrafKonflik(daftarJajanan);
 
     // Lakukan Pewarnaan
     const hasilWarna = welshPowellColoring(daftarJajanan, graf);
-    console.log("Hasil Coloring (Smart):", hasilWarna);
 
     // Kelompokkan item per warna
     const grupPerWarna = kelompokkanPerWarna(daftarJajanan, hasilWarna);
+    console.log("Hasil Pewarnaan:");
+    console.table(grupPerWarna.map(o => o.map(x => x.nama)));
     
     // Optimasi Isi Setiap Warna (Potong Budget)
     const kandidatBingkisan = grupPerWarna.map(grup => {
@@ -120,7 +123,10 @@ function buatAcak(jumlahBingkisan, maksimalHargaPerBingkisan, minimalJumlahMakan
     // Lalu susun hasil akhir sesuai jumlah permintaan user
     const bingkisanFinal = buatBingkisanFinal(jumlahBingkisan, bingkisanValid);
 
-    return bingkisanFinal;
+    return {
+        daftarBingkisan: bingkisanFinal,
+        daftarPewarnaan: grupPerWarna
+    };
 }
 
 /**
@@ -153,7 +159,7 @@ function urutkanSelangSeling(items) {
  * Node = Item Jajanan.
  * Edge = Konflik (jika dua item memiliki RASA yang sama).
  * * Menggunakan struktur data 'Set' untuk tetangga agar: Tidak ada duplikasi tetangga (A bertetangga dengan B, tidak perlu dicatat dua kali)
- * @param {Array<Object>} daftarJajanan - Array objek Item { id, nama, harga, jumlah, rasa, tipe }
+ * @param {Array<Item>} daftarJajanan - Array objek Item { id, nama, harga, jumlah, rasa, tipe }
  * @returns {Object.<string, Set<string>>} graf - Adjacency list. Key = ID Item, Value = Set ID Tetangga.
  */
 function bangunGrafKonflik(daftarJajanan) {
@@ -232,7 +238,6 @@ function bangunGrafKonflik(daftarJajanan) {
  * @returns {Object.<string, number>} warnaMap - Mapping: Key=ID Item, Value = Angka Warna (0, 1, 2...)
  */
 function welshPowellColoring(daftarJajanan, graf) {
-
     // Kita mapping array jajanan menjadi array objek yang lebih detail
     const vertices = daftarJajanan.map((item, index) => {
         // Pastikan ID berupa string agar cocok dengan key di object graf
@@ -324,25 +329,21 @@ function welshPowellColoring(daftarJajanan, graf) {
 }
 
 /**
- * Method ketiga buat pengelompokkan warnanya
+ * Method untuk mengelompokkan jajanan berdasarkan warna
  * Tujuan: Mengubah hasil mapping (ID -> Warna) menjadi bentuk Array of Arrays.
  * Contoh Input: { "A": 0, "B": 1, "C": 0 }
  * Contoh Output: [ [ItemA, ItemC], [ItemB] ]
- * @param {Array<Object>} daftarJajanan - Daftar lengkap item dengan data harga/nama
- * @param {Object.<string, number>} warnaMap - Hasil dari welshPowellColoring
- * @returns {Array<Array<Object>>} - Array berisi kelompok item per warna
+ * @param { Array<Item> } daftarJajanan - Daftar lengkap item dengan data harga/nama
+ * @param { Object.<string, number> } warnaMap - Hasil dari welshPowellColoring
+ * @returns { Array<Array<Item>> } - Array berisi kelompok item per warna
  */
 function kelompokkanPerWarna(daftarJajanan, warnaMap) {
-
-    // Siapkan objek sementara untuk menampung grup
-    // Format: { "0": [ItemA, ItemC], "1": [ItemB] }
-    const grupSementara = {};
+    const daftarWarna = [];
 
     // Loop semua item untuk dimasukkan ke wadah warnanya masing-masing
     for (const item of daftarJajanan) {
         // Ambil warna milik item ini dari map
-        const idStr = String(item.id);
-        const warna = warnaMap[idStr];
+        const warna = warnaMap[item.id];
 
         // Jika item tidak punya warna (mungkin terlewat), beri peringatan
         if (warna === undefined) {
@@ -351,28 +352,15 @@ function kelompokkanPerWarna(daftarJajanan, warnaMap) {
         }
 
         // Jika wadah untuk warna ini belum ada, buat array baru
-        if (!grupSementara[warna]) {
-            grupSementara[warna] = [];
+        if (daftarWarna[warna] == null) {
+            daftarWarna[warna] = [];
         }
 
         // Masukkan item ke wadah yang sesuai
-        grupSementara[warna].push(item);
+        daftarWarna[warna].push(item);
     }
-
-    // Konversi ke bentuk Array terurut (0, 1, 2, ...)
-    const hasilAkhir = [];
-
-    // Ambil semua nomor warna yang ada, pastikan jadi angka, lalu urutkan (Sort Ascending)
-    const urutanWarna = Object.keys(grupSementara)
-        .map(key => parseInt(key))
-        .sort((a, b) => a - b);
-
-    // Susun array hasil berdasarkan urutan warna tadi
-    for (const w of urutanWarna) {
-        hasilAkhir.push(grupSementara[w]);
-    }
-
-    return hasilAkhir;
+    
+    return daftarWarna;
 }
 
 /**

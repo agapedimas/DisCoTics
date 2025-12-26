@@ -21,7 +21,6 @@ body {
     grid-auto-rows: max-content;
     grid-auto-flow: column;
     gap: var(--padding);
-    justify-content: start;
 }
     #Content_Main > article > section {
         display: grid;
@@ -43,10 +42,12 @@ body {
         grid-auto-columns: auto max-content;
     }
 
+#Section_ToolsJajanan {
+    max-width: 350px;
+}
 #List_ToolsJajanan .stack {
     grid-auto-columns: 150px auto;
 }
-
 #List_DaftarJajanan .action {
     display: grid;
     grid-auto-flow: column;
@@ -90,10 +91,11 @@ body {
     margin: 2em 0 1em;
 }
 
-#Section_HasilKombinasi,
+#Section_HasilPewarnaan,
 #Section_HasilBingkisan {
     display: grid;
     grid-auto-flow: column;
+    grid-auto-columns: 300px;
     gap: 0.5em;
     overflow-x: auto;
 }

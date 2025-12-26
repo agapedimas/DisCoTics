@@ -240,33 +240,17 @@ Button_SelesaiFormJajananEdit.onclick = function() {
 // Tombol 'Buat Kombinasi Bingkisan' untuk meng-generate kombinasi bingkisan dari algorithm.js
 Button_BuatKombinasiBingkisan.onclick = function() {
     const hasilGenerasi = generateBingkisan();
+    Section_HasilPewarnaan.innerHTML = null;
     Section_HasilBingkisan.innerHTML = null;
 
-    const daftarWarna = [];
-    const daftarJajanan = dapatkanDaftarJajanan();
+    let i = 1;
+    for (const bingkisan of hasilGenerasi.daftarPewarnaan) {
+        const bingkisanElement = renderBingkisan(new Bingkisan(randomizeString(), bingkisan));
+        bingkisanElement.idElement.innerText = "Warna " + i++;
+        Section_HasilPewarnaan.append(bingkisanElement);
+    }
 
-    // Kelompokkan barang ke dalam setiap warna
-    // for (let idJajanan of Object.keys(hasilGenerasi.daftarKombinasi)) {
-    //     const warnaKelompok = hasilGenerasi.daftarKombinasi[idJajanan];
-
-    //     // Pada algorithm.js line 99 ada modifikasi id per item,
-    //     // yaitu ada suffix '_i', sehingga perlu di-trim terlebih dahulu
-    //     idJajanan = idJajanan.substring(0, idJajanan.indexOf("_"));
-
-    //     if (daftarWarna[warnaKelompok] == null)
-    //         daftarWarna[warnaKelompok] = [];
-
-    //     const jajanan = daftarJajanan.find(o => o.id == idJajanan);
-
-    //     if (jajanan == null)
-    //         continue;
-
-    //     daftarWarna[warnaKelompok].push(jajanan);
-    // }
-
-    // console.log(daftarWarna);
-
-    for (const bingkisan of hasilGenerasi) {
+    for (const bingkisan of hasilGenerasi.daftarBingkisan) {
         const bingkisanElement = renderBingkisan(bingkisan);
         Section_HasilBingkisan.append(bingkisanElement);
     }
@@ -278,15 +262,16 @@ Button_BuatKombinasiBingkisan.onclick = function() {
  * @param { Bingkisan } bingkisan 
  */
 function renderBingkisan(bingkisan) {
-    const idElement = document.createElement("span");
-    idElement.classList.add("id");
-    idElement.innerText = "Bingkisan " + bingkisan.id;
-
     const containerJajananElement = document.createElement("div");
     containerJajananElement.classList.add("daftarjajanan");
 
     const containerElement = document.createElement("div");
     containerElement.classList.add("bingkisan");
+
+    const idElement = document.createElement("span");
+    idElement.classList.add("id");
+    idElement.innerText = "Bingkisan " + bingkisan.id;
+    containerElement.idElement = idElement;
     containerElement.append(idElement);
 
     let totalHarga = 0;
