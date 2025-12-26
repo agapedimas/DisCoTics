@@ -1,5 +1,5 @@
 // kelas untuk jajanan
-class Item {
+class Jajanan {
     /**
      * @param { string } id
      * @param { string } nama 
@@ -22,7 +22,7 @@ class Item {
 class Bingkisan {
     /**
      * @param { string } id
-     * @param { Array<Item> } daftarJajanan
+     * @param { Array<Jajanan> } daftarJajanan
      */
     constructor(id, daftarJajanan) {
         this.id = id;
@@ -32,7 +32,7 @@ class Bingkisan {
 
 /**
  * Mengambil data daftar jajanan dari database
- * @returns { Array<Item> }
+ * @returns { Array<Jajanan> }
  */
 function dapatkanDaftarJajanan() {
     return JSON.parse(localStorage.getItem("jajanan")) || [];
@@ -47,7 +47,7 @@ function tampilkanDaftarJajanan() {
     const daftarJajanan = dapatkanDaftarJajanan();
     
     for (const item of daftarJajanan) {
-        const jajan = new Item(item.id, item.nama, item.harga, item.jumlah, item.rasa, item.tipe);
+        const jajan = new Jajanan(item.id, item.nama, item.harga, item.jumlah, item.rasa, item.tipe);
         const jajananElement = renderJajanan(jajan);
         List_DaftarJajanan.append(jajananElement);
     }
@@ -116,7 +116,7 @@ function renderJajanan(jajan) {
 
 /**
  * Menambah jajanan ke dalam database
- * @param { Item } jajanan 
+ * @param { Jajanan } jajanan 
  * @returns { boolean }
  */
 function tambahJajanan(jajanan) {
@@ -135,7 +135,7 @@ function tambahJajanan(jajanan) {
 
 /**
  * Mengedit salah satu jajanan dari database
- * @param { Item } jajanan 
+ * @param { Jajanan } jajanan 
  * @returns { boolean }
  */
 function editJajanan(jajanan) {
@@ -156,7 +156,7 @@ function editJajanan(jajanan) {
 
 /**
  * Menghapus jajanan dari database
- * @param { Item } jajanan
+ * @param { Jajanan } jajanan
  * @returns { boolean } 
  */
 function hapusJajanan(jajanan, element) {
@@ -204,7 +204,7 @@ Button_BatalFormJajanan.onclick = function() {
     PopOver_FormJajanan.close();
 }
 Button_SelesaiFormJajanan.onclick = function() {
-    const item = new Item(
+    const item = new Jajanan(
         null,
         Input_Nama.value.trim(),
         Input_Harga.valueInt || 0,
@@ -221,7 +221,7 @@ Button_BatalFormJajananEdit.onclick = function() {
     PopOver_FormJajananEdit.close();
 }
 Button_SelesaiFormJajananEdit.onclick = function() {
-    const item = new Item(
+    const item = new Jajanan(
         PopOver_FormJajananEdit.data.id,
         Input_NamaEdit.value.trim(),
         Input_HargaEdit.valueInt || 0,
@@ -356,7 +356,7 @@ Button_TambahRandom.onclick = function() {
     const indeksTerakhir = List_DaftarJajanan.children.length - 1;
 
     for (let i = indeksTerakhir; i < indeksTerakhir + 5; i++) {
-        const item = new Item(
+        const item = new Jajanan(
             null,
             "Jajanan " + (i+1), 
             Math.round(Math.random() * 25000 / 250) * 250 + 5000, // range: 5,000 s.d. 30,000

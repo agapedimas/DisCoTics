@@ -1,7 +1,7 @@
 /**
  * @returns {{ 
  *      daftarBingkisan: Array<Bingkisan>,
- *      daftarPewarnaan: Array<Array<Item>>
+ *      daftarPewarnaan: Array<Array<Jajanan>>
  * }}
  */
 function generateBingkisan() {
@@ -62,7 +62,7 @@ function generateBingkisan() {
  * @param { number } minimalJumlahMinuman 
  * @returns {{ 
  *      daftarBingkisan: Array<Bingkisan>,
- *      daftarPewarnaan: Array<Array<Item>>
+ *      daftarPewarnaan: Array<Array<Jajanan>>
  * }}
  */
 function buatAcak(jumlahBingkisan, maksimalHargaPerBingkisan, minimalJumlahMakanan, minimalJumlahMinuman) {
@@ -75,7 +75,7 @@ function buatAcak(jumlahBingkisan, maksimalHargaPerBingkisan, minimalJumlahMakan
         // Setiap jajanan akan dipecah jadi satu per satu
         for (let i = 0; i < jajananAsli.jumlah; i++) {
             const idUnik = jajananAsli.id + "_" + i;
-            daftarJajanan.push(new Item(
+            daftarJajanan.push(new Jajanan(
                 idUnik,
                 jajananAsli.nama,
                 jajananAsli.harga,
@@ -92,14 +92,14 @@ function buatAcak(jumlahBingkisan, maksimalHargaPerBingkisan, minimalJumlahMakan
     // Sehingga nanti akhirnya tidak ditemukan komposisi valid.
     // daftarJajanan = urutkanSelangSeling(daftarJajanan);
 
-    // Bangun Graf Konflik
+    // Bangun graf konflik
     const graf = bangunGrafKonflik(daftarJajanan);
 
-    // Lakukan Pewarnaan
+    // Lakukan pewarnaan
     const hasilWarna = welshPowellColoring(daftarJajanan, graf);
 
-    // Kelompokkan item per warna
-    const grupPerWarna = kelompokkanPerWarna(daftarJajanan, hasilWarna);
+    // Kelompokkan jajanan berdasarkan warna
+    let grupPerWarna = kelompokkanPerWarna(daftarJajanan, hasilWarna);
     console.log("Hasil Pewarnaan:");
     console.table(grupPerWarna.map(o => o.map(x => x.nama)));
     
@@ -156,30 +156,30 @@ function urutkanSelangSeling(items) {
 /**
  * Method pertama untuk membangun graf
  * * Tujuan: Membuat struktur data 'Adjacency List' yang merepresentasikan graf konflik.
- * Node = Item Jajanan.
+ * Node = Jajanan.
  * Edge = Konflik (jika dua item memiliki RASA yang sama).
  * * Menggunakan struktur data 'Set' untuk tetangga agar: Tidak ada duplikasi tetangga (A bertetangga dengan B, tidak perlu dicatat dua kali)
- * @param {Array<Item>} daftarJajanan - Array objek Item { id, nama, harga, jumlah, rasa, tipe }
- * @returns {Object.<string, Set<string>>} graf - Adjacency list. Key = ID Item, Value = Set ID Tetangga.
+ * @param {Array<Jajanan>} daftarJajanan - Array objek Jajanan { id, nama, harga, jumlah, rasa, tipe }
+ * @returns {Object.<string, Set<string>>} graf - Adjacency list. Key = ID Jajanan, Value = Set ID Tetangga.
  */
 function bangunGrafKonflik(daftarJajanan) {
 
     // Inisialisasi Adjacency List kosong
-    // Graf direpresentasikan sebagai Object, di mana Key adalah ID Item.
+    // Graf direpresentasikan sebagai Object, di mana Key adalah ID Jajanan.
     const graf = {};
 
     // Loop semua jajanan untuk menyiapkan simpul di dalam graf
     for (const item of daftarJajanan) {
         // Pakai String() untuk memastikan ID konsisten String bukan integer
-        const idItem = String(item.id);
+        const idJajanan = String(item.id);
         
         // Kalau belum punya musuh/konflik, mulai dari set kosong
-        graf[idItem] = new Set(); 
+        graf[idJajanan] = new Set(); 
     }
 
     // Grouping
     // Daripada membandingkan satu-satu secara acak, kita kelompokkan dulu berdasarkan RASA.
-    // Strukturnya nanti akan menjadi seperti berikut kurang lebih: { "coklat": [ItemA, ItemB], "keju": [ItemC] }
+    // Strukturnya nanti akan menjadi seperti berikut kurang lebih: { "coklat": [JajananA, JajananB], "keju": [JajananC] }
     const kelompokRasa = {}; 
 
     for (const item of daftarJajanan) {
@@ -233,9 +233,9 @@ function bangunGrafKonflik(daftarJajanan) {
  * 2. Urutkan simpul berdasarkan derajat secara DESCENDING (terbesar ke terkecil).
  * 3. Ambil simpul pertama yang belum berwarna, beri warna baru.
  * 4. Cari simpul lain (non-adjacent) yang bisa dimasukkan ke warna yang sama.
- * @param {Array<Item>} daftarJajanan - Array objek Item
+ * @param {Array<Jajanan>} daftarJajanan - Array objek Jajanan
  * @param {Object.<string, Set<string>>} graf - Adjacency list dari bangunGrafKonflik 
- * @returns {Object.<string, number>} warnaMap - Mapping: Key=ID Item, Value = Angka Warna (0, 1, 2...)
+ * @returns {Object.<string, number>} warnaMap - Mapping: Key=ID Jajanan, Value = Angka Warna (0, 1, 2...)
  */
 function welshPowellColoring(daftarJajanan, graf) {
     // Kita mapping array jajanan menjadi array objek yang lebih detail
@@ -248,7 +248,7 @@ function welshPowellColoring(daftarJajanan, graf) {
         const degree = graf[idStr] ? graf[idStr].size : 0;
         
         return { 
-            id: idStr,           // ID Unik Item (contoh: '101_0')
+            id: idStr,           // ID Unik Jajanan (contoh: '101_0')
             degree: degree,      // Jumlah Konflik (cth: 1)
             originalIndex: index // Simpan nomor urut antrian asli
         };
@@ -261,7 +261,7 @@ function welshPowellColoring(daftarJajanan, graf) {
         // Cek Prioritas Utama: DEGREE (Jumlah Konflik)
         if (b.degree !== a.degree) {
             // Urutkan Descending (Besar ke Kecil)
-            // Item yang paling banyak konflik harus diwarnai duluan
+            // Jajanan yang paling banyak konflik harus diwarnai duluan
             return b.degree - a.degree; 
         }
 
@@ -272,7 +272,7 @@ function welshPowellColoring(daftarJajanan, graf) {
     });
 
     // Proses Pewarnaan
-    const warnaMap = {};     // Tempat menyimpan hasil: { "ID_Item": AngkaWarna }
+    const warnaMap = {};     // Tempat menyimpan hasil: { "ID_Jajanan": AngkaWarna }
     let currentColor = 0;    // Mulai dari Warna ke-0 (Wadah 1)
 
     // Selama masih ada vertex yang belum kebagian warna
@@ -332,10 +332,10 @@ function welshPowellColoring(daftarJajanan, graf) {
  * Method untuk mengelompokkan jajanan berdasarkan warna
  * Tujuan: Mengubah hasil mapping (ID -> Warna) menjadi bentuk Array of Arrays.
  * Contoh Input: { "A": 0, "B": 1, "C": 0 }
- * Contoh Output: [ [ItemA, ItemC], [ItemB] ]
- * @param { Array<Item> } daftarJajanan - Daftar lengkap item dengan data harga/nama
+ * Contoh Output: [ [JajananA, JajananC], [JajananB] ]
+ * @param { Array<Jajanan> } daftarJajanan - Daftar lengkap item dengan data harga/nama
  * @param { Object.<string, number> } warnaMap - Hasil dari welshPowellColoring
- * @returns { Array<Array<Item>> } - Array berisi kelompok item per warna
+ * @returns { Array<Array<Jajanan>> } - Array berisi kelompok item per warna
  */
 function kelompokkanPerWarna(daftarJajanan, warnaMap) {
     const daftarWarna = [];
@@ -347,7 +347,7 @@ function kelompokkanPerWarna(daftarJajanan, warnaMap) {
 
         // Jika item tidak punya warna (mungkin terlewat), beri peringatan
         if (warna === undefined) {
-            console.warn("Peringatan: Item berikut tidak terwarnai:", item.nama);
+            console.warn("Peringatan: Jajanan berikut tidak terwarnai:", item.nama);
             continue; 
         }
 
@@ -361,6 +361,22 @@ function kelompokkanPerWarna(daftarJajanan, warnaMap) {
     }
     
     return daftarWarna;
+}
+
+
+
+/**
+ * Seleksi kelompok warna sesuai kriteria
+ * @param { Array<Array<Jajanan>> } daftarKelompokWarna 
+ * @param { number } maksimalHargaPerBingkisan 
+ * @param { number } minimalJumlahMakanan 
+ * @param { number } minimalJumlahMinuman 
+ * @returns { Array<Array<Jajanan>> }
+ */
+function seleksiKelompokWarna(daftarKelompokWarna, maksimalHargaPerBingkisan, minimalJumlahMakanan, minimalJumlahMinuman) {
+    const daftarKelompokWarnaAkhir = [];
+
+    
 }
 
 /**
@@ -392,18 +408,18 @@ function optimalkanGrup(grup, maxBudget) {
     // Supaya kita bisa memasukkan sebanyak mungkin item ke dalam bingkisan.
     
     // Copy array agar data asli tidak rusak, lalu sort harga (Ascending: Murah -> Mahal)
-    const sortedItems = [...grup].sort((a, b) => a.harga - b.harga);
+    const sortedJajanans = [...grup].sort((a, b) => a.harga - b.harga);
     
     const hasilValid = [];
     let hargaBerjalan = 0;
 
-    for (const item of sortedItems) {
+    for (const item of sortedJajanans) {
         // Cek jika item ini dimasukkan, apakah jebol?
         if (hargaBerjalan + item.harga <= maxBudget) {
             hasilValid.push(item);
             hargaBerjalan += item.harga;
         } else {
-            // Jika sudah tidak muat, berhenti loop. Item sisa (yang mahal) dibuang.
+            // Jika sudah tidak muat, berhenti loop. Jajanan sisa (yang mahal) dibuang.
             break; 
         }
     }
