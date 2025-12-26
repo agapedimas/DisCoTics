@@ -253,22 +253,85 @@ Button_SelesaiFormJajananEdit.onclick = function() {
 }
 
 // Tombol 'Buat Kombinasi Bingkisan' untuk meng-generate kombinasi bingkisan dari algorithm.js
-Button_BuatKombinasiBingkisan.onclick = function() {
-    const hasilGenerasi = buatDaftarBingkisan();
+Button_BuatKombinasiBingkisan.onclick = async function() {
+    const buttons = document.querySelectorAll("article > section button");
+    for (const button of buttons)
+        button.disabled = true;
+
+    Button_BuatKombinasiBingkisan.classList.add("loading");
     Section_HasilPewarnaan.innerHTML = null;
     Section_HasilBingkisan.innerHTML = null;
 
+    // Ambil Data Jajanan
+    const daftarMentah = dapatkanDaftarJajanan();
+    
+    if (daftarMentah.length === 0) {
+        Components.Notification.Send({ 
+            Id: "data_kosong", 
+            Title: "Data Kosong", 
+            Message: "Isi data dahulu sebelum generate.", 
+            Icon: "\ufe60" 
+        });
+        return;
+    }
+
+    // Ambil syarat-syarat bingkisan
+    const jumlahBingkisan = parseInt(Input_BanyakBingkisan.value) || 1;
+    const jumlahMakananMinimal = parseInt(Input_BanyakMakanan.value) || 0;
+    const jumlahMinumanMinimal = parseInt(Input_BanyakMinuman.value) || 0;
+    const budgetMaksimal = Input_MaksHargaBingkisan.valueInt; // Pake valueInt karena sudah dibuatkan methodnya di scripts.js
+    
+    // Lakukan pengacakan dan cari kombinasi yang mungkin
+    const hasilFinal = await buatDaftarBingkisan(
+        jumlahBingkisan, 
+        budgetMaksimal, 
+        jumlahMakananMinimal, 
+        jumlahMinumanMinimal
+    );
+
+    // Tampilkan hasil
+    console.log("Hasil Final", hasilFinal);
+
+    if (hasilFinal.length === 0) {
+        Components.Notification.Send({ 
+            Id: "bingkisan_gagal",
+            Title: "Gagal Menyusun Bingkisan", 
+            Message: "Coba naikkan budget atau kurangi syarat jumlah makanan/minuman.", 
+            Icon: "\ufe60" // Icon silang dalam unicode font SF Symbols 
+        });
+    }
+    else if (hasilFinal.daftarBingkisan.length != jumlahBingkisan) {
+        Components.Notification.Send({ 
+            Id: "bingkisan_berhasil",
+            Title: "Berhasil Menyusun Sebagian Bingkisan", 
+            Message: "Sebanyak " + hasilFinal.daftarBingkisan.length + " dari " + jumlahBingkisan + " bingkisan telah disusun secara bervariasi.", 
+            Icon: "\uef1c" // Icon centang dalam unicode font SF Symbols 
+        });
+    }
+    else {
+        Components.Notification.Send({ 
+            Id: "bingkisan_berhasil",
+            Title: "Berhasil Menyusun Bingkisan", 
+            Message: "Sebanyak " + hasilFinal.daftarBingkisan.length + " bingkisan telah disusun secara bervariasi.", 
+            Icon: "\uef1c" // Icon centang dalam unicode font SF Symbols 
+        });
+    }
+
     let i = 1;
-    for (const bingkisan of hasilGenerasi.daftarPewarnaan) {
+    for (const bingkisan of hasilFinal.daftarPewarnaan) {
         const bingkisanElement = renderBingkisan(bingkisan);
         bingkisanElement.idElement.innerText = "Warna " + i++;
         Section_HasilPewarnaan.append(bingkisanElement);
     }
 
-    for (const bingkisan of hasilGenerasi.daftarBingkisan) {
+    for (const bingkisan of hasilFinal.daftarBingkisan) {
         const bingkisanElement = renderBingkisan(bingkisan);
         Section_HasilBingkisan.append(bingkisanElement);
     }
+
+    for (const button of buttons)
+        button.disabled = false;
+    Button_BuatKombinasiBingkisan.classList.remove("loading");
 }
 
 /**

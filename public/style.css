@@ -81,6 +81,15 @@ body {
     border-radius: 10px;
     margin-top: 5px;
 }
+    #Section_DaftarJajanan > button .progressring,
+    #Section_ToolsJajanan > button .progressring {
+        width: 1em;
+        display: none;
+    }
+    #Section_DaftarJajanan > button.loading .progressring,
+    #Section_ToolsJajanan > button.loading .progressring {
+        display: block;
+    }
 
 
 #Text_HasilKombinasi,

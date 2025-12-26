@@ -1,148 +1,65 @@
 /**
- * @returns {{ 
- *      daftarBingkisan: Array<Bingkisan>,
- *      daftarPewarnaan: Array<Array<Jajanan>>
- * }}
- */
-function buatDaftarBingkisan() {
-    // Ambil Data Jajanan
-    const daftarMentah = dapatkanDaftarJajanan();
-    
-    if (daftarMentah.length === 0) {
-        Components.Notification.Send({ 
-            Id: "data_kosong", 
-            Title: "Data Kosong", 
-            Message: "Isi data dahulu sebelum generate.", 
-            Icon: "\ufe60" 
-        });
-        return;
-    }
-
-    // Ambil syarat-syarat bingkisan
-    const jumlahBingkisan = parseInt(Input_BanyakBingkisan.value) || 1;
-    const jumlahMakananMinimal = parseInt(Input_BanyakMakanan.value) || 0;
-    const jumlahMinumanMinimal = parseInt(Input_BanyakMinuman.value) || 0;
-    const budgetMaksimal = Input_MaksHargaBingkisan.valueInt; // Pake valueInt karena sudah dibuatkan methodnya di scripts.js
-    
-    // Lakukan pengacakan dan cari kombinasi yang mungkin
-    const hasilFinal = eksekusiPembuatanBingkisan(
-        jumlahBingkisan, 
-        budgetMaksimal, 
-        jumlahMakananMinimal, 
-        jumlahMinumanMinimal
-    );
-
-    // Tampilkan hasil
-    console.log("Hasil Final", hasilFinal);
-
-    if (hasilFinal.length === 0) {
-        Components.Notification.Send({ 
-            Id: "bingkisan_gagal",
-            Title: "Gagal Menyusun Bingkisan", 
-            Message: "Coba naikkan budget atau kurangi syarat jumlah makanan/minuman.", 
-            Icon: "\ufe60" // Icon silang dalam unicode font SF Symbols 
-        });
-    }
-    else if (hasilFinal.daftarBingkisan.length != jumlahBingkisan) {
-        Components.Notification.Send({ 
-            Id: "bingkisan_berhasil",
-            Title: "Berhasil Menyusun Sebagian Bingkisan", 
-            Message: "Sebanyak " + hasilFinal.daftarBingkisan.length + " dari " + jumlahBingkisan + " bingkisan telah disusun secara bervariasi.", 
-            Icon: "\uef1c" // Icon centang dalam unicode font SF Symbols 
-        });
-    }
-    else {
-        Components.Notification.Send({ 
-            Id: "bingkisan_berhasil",
-            Title: "Berhasil Menyusun Bingkisan", 
-            Message: "Sebanyak " + hasilFinal.daftarBingkisan.length + " bingkisan telah disusun secara bervariasi.", 
-            Icon: "\uef1c" // Icon centang dalam unicode font SF Symbols 
-        });
-    }
-
-    return hasilFinal;
-}
-
-/**
  * Method utama untuk menjalankan logika
  * @param { number } jumlahBingkisan 
  * @param { number } maksimalHargaPerBingkisan 
  * @param { number } minimalJumlahMakanan 
  * @param { number } minimalJumlahMinuman 
- * @returns {{ 
+ * @returns { Promise<{ 
  *      daftarBingkisan: Array<Bingkisan>,
  *      daftarPewarnaan: Array<Array<Jajanan>>
- * }}
+ * }>}
  */
-function eksekusiPembuatanBingkisan(jumlahBingkisan, maksimalHargaPerBingkisan, minimalJumlahMakanan, minimalJumlahMinuman) {
-    // Ambil data dan ekspansi node nya, untuk memecah stock per itemnya
-    // Kita loop manual untuk handle Qty
-    const dataMentah = dapatkanDaftarJajanan();
-    let daftarJajanan = [];
+function buatDaftarBingkisan(jumlahBingkisan, maksimalHargaPerBingkisan, minimalJumlahMakanan, minimalJumlahMinuman) {
+    // Counter global, digunakan untuk sleep loop agar UI tidak freezing
+    window.x = 0;
 
-    for (const jajananAsli of dataMentah) {
-        // Setiap jajanan akan dipecah jadi satu per satu
-        for (let i = 0; i < jajananAsli.jumlah; i++) {
-            const idUnik = jajananAsli.id + "_" + i;
-            daftarJajanan.push(new Jajanan(
-                idUnik,
-                jajananAsli.nama,
-                jajananAsli.harga,
-                1,
-                jajananAsli.rasa,
-                jajananAsli.tipe
-            ))
+    // Dibuat new Promise() untuk mengeksekusinya secara asinkronus
+    return new Promise(async function(resolve) {
+        // Ambil data dan ekspansi node nya, untuk memecah stock per itemnya
+        // Kita loop manual untuk handle Qty
+        const dataMentah = dapatkanDaftarJajanan();
+        let daftarJajanan = [];
+        
+        for (const jajananAsli of dataMentah) {
+            // Setiap jajanan akan dipecah jadi satu per satu
+            for (let i = 0; i < jajananAsli.jumlah; i++) {
+                const idUnik = jajananAsli.id + "_" + i;
+                daftarJajanan.push(new Jajanan(
+                    idUnik,
+                    jajananAsli.nama,
+                    jajananAsli.harga,
+                    1,
+                    jajananAsli.rasa,
+                    jajananAsli.tipe
+                ))
+            }
         }
-    }
-
-    // Bangun graf konflik
-    const graf = bangunGrafKonflik(daftarJajanan);
-
-    // Lakukan pewarnaan
-    const hasilWarna = welshPowellColoring(daftarJajanan, graf);
-
-    // Kelompokkan jajanan berdasarkan warna
-    let grupPerWarna = kelompokkanPerWarna(daftarJajanan, hasilWarna);
-    console.log("Hasil Pewarnaan:");
-    console.table(grupPerWarna.map(o => o.daftarJajanan.map(x => x.nama)));
-
-    // Kelompok warna dipilih dan diurutkan yang terbaik berdasarkan
-    // permintaan user
-    grupPerWarna = seleksiKelompokWarna(grupPerWarna, maksimalHargaPerBingkisan, minimalJumlahMakanan, minimalJumlahMinuman);
-    console.log("Hasil Seleksi:");
-    console.table(grupPerWarna.map(o => o.daftarJajanan.map(x => x.nama)));
-
-    // Sekarang tinggal masukkan barang-barang ke dalam bingkisan
-    const daftarBingkisan = masukkanJajananKeBingkisan(grupPerWarna, jumlahBingkisan); 
-
-    return {
-        daftarBingkisan: daftarBingkisan,
-        daftarPewarnaan: grupPerWarna
-    };
-}
-
-/**
- * Method helper untuk mengurutkan selang seling input
- * Mengubah urutan agar konflik sejajar tidak bertemu.
- * Makanan: [A, B], Minuman: [C, D]
- * Hasil: [A, D, B, C] (Minuman dibalik)
- */
-function urutkanSelangSeling(items) {
-    const makanan = items.filter(i => i.tipe === 'makanan');
     
-    // Reverse minuman agar pola konfliknya tidak sejajar dengan makanan
-    // Contoh: Roti(Coklat) jangan langsung ketemu Susu(Coklat).
-    // Tapi ketemu Teh(Vanilla) dulu dari urutan belakang.
-    const minuman = items.filter(i => i.tipe === 'minuman').reverse(); 
+        // Bangun graf konflik
+        const graf = await bangunGrafKonflik(daftarJajanan);
     
-    const hasil = [];
-    const maxLen = Math.max(makanan.length, minuman.length);
-
-    for (let i = 0; i < maxLen; i++) {
-        if (i < makanan.length) hasil.push(makanan[i]);
-        if (i < minuman.length) hasil.push(minuman[i]);
-    }
-    return hasil;
+        // Lakukan pewarnaan
+        const hasilWarna = await welshPowellColoring(daftarJajanan, graf);
+    
+        // Kelompokkan jajanan berdasarkan warna
+        let grupPerWarna = await kelompokkanPerWarna(daftarJajanan, hasilWarna);
+        // console.log("Hasil Pewarnaan:");
+        // console.table(grupPerWarna.map(o => o.daftarJajanan.map(x => x.nama)));
+    
+        // Kelompok warna dipilih dan diurutkan yang terbaik berdasarkan
+        // permintaan user
+        grupPerWarna = await seleksiKelompokWarna(grupPerWarna, maksimalHargaPerBingkisan, minimalJumlahMakanan, minimalJumlahMinuman);
+        // console.log("Hasil Seleksi:");
+        // console.table(grupPerWarna.map(o => o.daftarJajanan.map(x => x.nama)));
+    
+        // Sekarang tinggal masukkan barang-barang ke dalam bingkisan
+        const daftarBingkisan = await masukkanJajananKeBingkisan(grupPerWarna, jumlahBingkisan); 
+    
+        return resolve({
+            daftarBingkisan: daftarBingkisan,
+            daftarPewarnaan: grupPerWarna
+        });
+    });
 }
 
 /**
@@ -151,10 +68,10 @@ function urutkanSelangSeling(items) {
  * Node = Jajanan.
  * Edge = Konflik (jika dua item memiliki RASA yang sama).
  * * Menggunakan struktur data 'Set' untuk tetangga agar: Tidak ada duplikasi tetangga (A bertetangga dengan B, tidak perlu dicatat dua kali)
- * @param {Array<Jajanan>} daftarJajanan - Array objek Jajanan { id, nama, harga, jumlah, rasa, tipe }
- * @returns {Object.<string, Set<string>>} graf - Adjacency list. Key = ID Jajanan, Value = Set ID Tetangga.
+ * @param { Array<Jajanan> } daftarJajanan - Array objek Jajanan { id, nama, harga, jumlah, rasa, tipe }
+ * @returns { Promise<Object.<string, Set<string>>> } graf - Adjacency list. Key = ID Jajanan, Value = Set ID Tetangga.
  */
-function bangunGrafKonflik(daftarJajanan) {
+async function bangunGrafKonflik(daftarJajanan) {
 
     // Inisialisasi Adjacency List kosong
     // Graf direpresentasikan sebagai Object, di mana Key adalah ID Jajanan.
@@ -162,11 +79,8 @@ function bangunGrafKonflik(daftarJajanan) {
 
     // Loop semua jajanan untuk menyiapkan simpul di dalam graf
     for (const item of daftarJajanan) {
-        // Pakai String() untuk memastikan ID konsisten String bukan integer
-        const idJajanan = String(item.id);
-        
         // Kalau belum punya musuh/konflik, mulai dari set kosong
-        graf[idJajanan] = new Set(); 
+        graf[item.id] = new Set(); 
     }
 
     // Grouping
@@ -191,7 +105,6 @@ function bangunGrafKonflik(daftarJajanan) {
     
     // Loop setiap jenis rasa yang ada
     for (const rasa in kelompokRasa) {
-        
         // Ambil daftar item yang rasanya sama
         const itemsSatuRasa = kelompokRasa[rasa];
 
@@ -225,22 +138,19 @@ function bangunGrafKonflik(daftarJajanan) {
  * 2. Urutkan simpul berdasarkan derajat secara DESCENDING (terbesar ke terkecil).
  * 3. Ambil simpul pertama yang belum berwarna, beri warna baru.
  * 4. Cari simpul lain (non-adjacent) yang bisa dimasukkan ke warna yang sama.
- * @param {Array<Jajanan>} daftarJajanan - Array objek Jajanan
- * @param {Object.<string, Set<string>>} graf - Adjacency list dari bangunGrafKonflik 
- * @returns {Object.<string, number>} warnaMap - Mapping: Key=ID Jajanan, Value = Angka Warna (0, 1, 2...)
+ * @param { Array<Jajanan> } daftarJajanan - Array objek Jajanan
+ * @param { Object.<string, Set<string>> } graf - Adjacency list dari bangunGrafKonflik 
+ * @returns { Promise<Object.<string, number>> } warnaMap - Mapping: Key=ID Jajanan, Value = Angka Warna (0, 1, 2...)
  */
-function welshPowellColoring(daftarJajanan, graf) {
+async function welshPowellColoring(daftarJajanan, graf) {
     // Kita mapping array jajanan menjadi array objek yang lebih detail
     const vertices = daftarJajanan.map((item, index) => {
-        // Pastikan ID berupa string agar cocok dengan key di object graf
-        const idStr = String(item.id);
-        
         // Ambil jumlah musuh (degree) dari graf. 
         // Jika item tidak punya musuh (undefined), anggap degree 0.
-        const degree = graf[idStr] ? graf[idStr].size : 0;
+        const degree = graf[item.id] ? graf[item.id].size : 0;
         
         return { 
-            id: idStr,           // ID Unik Jajanan (contoh: '101_0')
+            id: item.id,           // ID Unik Jajanan (contoh: '101_0')
             degree: degree,      // Jumlah Konflik (cth: 1)
             originalIndex: index // Simpan nomor urut antrian asli
         };
@@ -294,6 +204,9 @@ function welshPowellColoring(daftarJajanan, graf) {
 
             // Cek satu per satu anggota yang sudah ada di currentColor
             for (const existingId in warnaMap) {
+                if (window.x++ % 500000 == 0)
+                    await Delay(0);
+
                 // Hanya cek yang warnanya sama dengan warna saat ini
                 if (warnaMap[existingId] === currentColor) {
                     
@@ -327,9 +240,9 @@ function welshPowellColoring(daftarJajanan, graf) {
  * Contoh Output: [ [JajananA, JajananC], [JajananB] ]
  * @param { Array<Jajanan> } daftarJajanan - Daftar lengkap item dengan data harga/nama
  * @param { Object.<string, number> } warnaMap - Hasil dari welshPowellColoring
- * @returns { Array<Warna> } - Array berisi kelompok item per warna
+ * @returns { Promise<Array<Warna>> } - Array berisi kelompok item per warna
  */
-function kelompokkanPerWarna(daftarJajanan, warnaMap) {
+async function kelompokkanPerWarna(daftarJajanan, warnaMap) {
     const daftarWarna = [];
 
     // Loop semua item untuk dimasukkan ke wadah warnanya masing-masing
@@ -355,17 +268,15 @@ function kelompokkanPerWarna(daftarJajanan, warnaMap) {
     return daftarWarna;
 }
 
-
-
 /**
  * Seleksi kelompok warna sesuai kriteria
  * @param { Array<Warna> } daftarKelompokWarna 
  * @param { number } maksimalHargaPerBingkisan 
  * @param { number } minimalJumlahMakanan 
  * @param { number } minimalJumlahMinuman 
- * @returns { Array<Warna> }
+ * @returns { Promise<Array<Warna>> }
  */
-function seleksiKelompokWarna(daftarKelompokWarna, maksimalHargaPerBingkisan, minimalJumlahMakanan, minimalJumlahMinuman) {
+async function seleksiKelompokWarna(daftarKelompokWarna, maksimalHargaPerBingkisan, minimalJumlahMakanan, minimalJumlahMinuman) {
     const daftarKelompokWarnaValid = [];
     /**
         Tahapan:
@@ -422,9 +333,9 @@ function seleksiKelompokWarna(daftarKelompokWarna, maksimalHargaPerBingkisan, mi
  * Masukkan barang-barang ke dalam bingkisan sesuai kelompok warna
  * @param { Array<Warna> } daftarKelompokWarna 
  * @param { number } jumlahBingkisan 
- * @returns { Array<Bingkisan> }
+ * @returns { Promise<Array<Bingkisan>> }
  */
-function masukkanJajananKeBingkisan(daftarKelompokWarna, jumlahBingkisan) {
+async function masukkanJajananKeBingkisan(daftarKelompokWarna, jumlahBingkisan) {
     const daftarBingkisan = [];
 
     // Daftar jajanan ini digunakan sebagai acuan, apakah stok
