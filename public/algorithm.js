@@ -4,7 +4,7 @@
  *      daftarPewarnaan: Array<Array<Jajanan>>
  * }}
  */
-function generateBingkisan() {
+function buatDaftarBingkisan() {
     // Ambil Data Jajanan
     const daftarMentah = dapatkanDaftarJajanan();
     
@@ -25,7 +25,7 @@ function generateBingkisan() {
     const budgetMaksimal = Input_MaksHargaBingkisan.valueInt; // Pake valueInt karena sudah dibuatkan methodnya di scripts.js
     
     // Lakukan pengacakan dan cari kombinasi yang mungkin
-    const hasilFinal = buatAcak(
+    const hasilFinal = eksekusiPembuatanBingkisan(
         jumlahBingkisan, 
         budgetMaksimal, 
         jumlahMakananMinimal, 
@@ -42,7 +42,16 @@ function generateBingkisan() {
             Message: "Coba naikkan budget atau kurangi syarat jumlah makanan/minuman.", 
             Icon: "\ufe60" // Icon silang dalam unicode font SF Symbols 
         });
-    } else {
+    }
+    else if (hasilFinal.daftarBingkisan.length != jumlahBingkisan) {
+        Components.Notification.Send({ 
+            Id: "bingkisan_berhasil",
+            Title: "Berhasil Menyusun Sebagian Bingkisan", 
+            Message: "Sebanyak " + hasilFinal.daftarBingkisan.length + " dari " + jumlahBingkisan + " bingkisan telah disusun secara bervariasi.", 
+            Icon: "\uef1c" // Icon centang dalam unicode font SF Symbols 
+        });
+    }
+    else {
         Components.Notification.Send({ 
             Id: "bingkisan_berhasil",
             Title: "Berhasil Menyusun Bingkisan", 
@@ -65,7 +74,7 @@ function generateBingkisan() {
  *      daftarPewarnaan: Array<Array<Jajanan>>
  * }}
  */
-function buatAcak(jumlahBingkisan, maksimalHargaPerBingkisan, minimalJumlahMakanan, minimalJumlahMinuman) {
+function eksekusiPembuatanBingkisan(jumlahBingkisan, maksimalHargaPerBingkisan, minimalJumlahMakanan, minimalJumlahMinuman) {
     // Ambil data dan ekspansi node nya, untuk memecah stock per itemnya
     // Kita loop manual untuk handle Qty
     const dataMentah = dapatkanDaftarJajanan();
@@ -86,12 +95,6 @@ function buatAcak(jumlahBingkisan, maksimalHargaPerBingkisan, minimalJumlahMakan
         }
     }
 
-    // Sebelum masuk graph, kita scramble dulu urutannya jadi Makan, Minum, Makan...
-    // Agar Welsh-Powell mengambil item secara berimbang.
-    // Untuk menghindari ketidakseimbangan, misalnya setelah diwarnai, kelompok warna 1 berisi makanan semua, atau sebaliknya
-    // Sehingga nanti akhirnya tidak ditemukan komposisi valid.
-    // daftarJajanan = urutkanSelangSeling(daftarJajanan);
-
     // Bangun graf konflik
     const graf = bangunGrafKonflik(daftarJajanan);
 
@@ -101,30 +104,19 @@ function buatAcak(jumlahBingkisan, maksimalHargaPerBingkisan, minimalJumlahMakan
     // Kelompokkan jajanan berdasarkan warna
     let grupPerWarna = kelompokkanPerWarna(daftarJajanan, hasilWarna);
     console.log("Hasil Pewarnaan:");
-    console.table(grupPerWarna.map(o => o.map(x => x.nama)));
-    
-    // Optimasi Isi Setiap Warna (Potong Budget)
-    const kandidatBingkisan = grupPerWarna.map(grup => {
-        return optimalkanGrup(grup, maksimalHargaPerBingkisan); 
-    });
+    console.table(grupPerWarna.map(o => o.daftarJajanan.map(x => x.nama)));
 
-    // Validasi Kelengkapan
-    const bingkisanValid = kandidatBingkisan.filter(b => 
-        validasiKomposisi(b, minimalJumlahMakanan, minimalJumlahMinuman)
-    );
+    // Kelompok warna dipilih dan diurutkan yang terbaik berdasarkan
+    // permintaan user
+    grupPerWarna = seleksiKelompokWarna(grupPerWarna, maksimalHargaPerBingkisan, minimalJumlahMakanan, minimalJumlahMinuman);
+    console.log("Hasil Seleksi:");
+    console.table(grupPerWarna.map(o => o.daftarJajanan.map(x => x.nama)));
 
-    console.log("Kandidat Valid:", bingkisanValid);
-
-    if (bingkisanValid.length === 0) {
-        // Return array kosong agar Solver tahu ini gagal
-        return [];
-    }
-    
-    // Lalu susun hasil akhir sesuai jumlah permintaan user
-    const bingkisanFinal = buatBingkisanFinal(jumlahBingkisan, bingkisanValid);
+    // Sekarang tinggal masukkan barang-barang ke dalam bingkisan
+    const daftarBingkisan = masukkanJajananKeBingkisan(grupPerWarna, jumlahBingkisan); 
 
     return {
-        daftarBingkisan: bingkisanFinal,
+        daftarBingkisan: daftarBingkisan,
         daftarPewarnaan: grupPerWarna
     };
 }
@@ -335,7 +327,7 @@ function welshPowellColoring(daftarJajanan, graf) {
  * Contoh Output: [ [JajananA, JajananC], [JajananB] ]
  * @param { Array<Jajanan> } daftarJajanan - Daftar lengkap item dengan data harga/nama
  * @param { Object.<string, number> } warnaMap - Hasil dari welshPowellColoring
- * @returns { Array<Array<Jajanan>> } - Array berisi kelompok item per warna
+ * @returns { Array<Warna> } - Array berisi kelompok item per warna
  */
 function kelompokkanPerWarna(daftarJajanan, warnaMap) {
     const daftarWarna = [];
@@ -353,11 +345,11 @@ function kelompokkanPerWarna(daftarJajanan, warnaMap) {
 
         // Jika wadah untuk warna ini belum ada, buat array baru
         if (daftarWarna[warna] == null) {
-            daftarWarna[warna] = [];
+            daftarWarna[warna] = new Warna(warna, -1, []);
         }
 
         // Masukkan item ke wadah yang sesuai
-        daftarWarna[warna].push(item);
+        daftarWarna[warna].daftarJajanan.push(item);
     }
     
     return daftarWarna;
@@ -367,116 +359,110 @@ function kelompokkanPerWarna(daftarJajanan, warnaMap) {
 
 /**
  * Seleksi kelompok warna sesuai kriteria
- * @param { Array<Array<Jajanan>> } daftarKelompokWarna 
+ * @param { Array<Warna> } daftarKelompokWarna 
  * @param { number } maksimalHargaPerBingkisan 
  * @param { number } minimalJumlahMakanan 
  * @param { number } minimalJumlahMinuman 
- * @returns { Array<Array<Jajanan>> }
+ * @returns { Array<Warna> }
  */
 function seleksiKelompokWarna(daftarKelompokWarna, maksimalHargaPerBingkisan, minimalJumlahMakanan, minimalJumlahMinuman) {
-    const daftarKelompokWarnaAkhir = [];
+    const daftarKelompokWarnaValid = [];
+    /**
+        Tahapan:
 
-    
+        1. Cek harga, apakah melebihi budget? Jika ya, eliminasi
+        2. Cek apakah sesuai minimal minuman dan makanan? Jika tidak, eliminasi
+        3. Cek komposisi makanan dan minuman:
+            Cek selisih, jika:
+            - |makanan - minuman| == 0 -> Beri skor prioritas 0
+            - |makanan - minuman| == 1 -> Beri skor prioritas 1,
+            dst.
+     */
+
+    for (const warna of daftarKelompokWarna) {
+        let totalHarga = 0;
+        let totalMakanan = 0;
+        let totalMinuman = 0;
+
+        for (const jajanan of warna.daftarJajanan) {
+            totalHarga += jajanan.harga;
+            if (jajanan.tipe == "makanan")
+                totalMakanan++;
+            else if (jajanan.tipe == "minuman")
+                totalMinuman++;
+        }
+        
+        // Cek 2 tahapan tadi, apakah perlu dieliminasi
+        let apakahDieliminasi = false;
+
+        // jika maksimalHargaPerBingkisan bernilai 0,
+        // maka asumsinya tidak ada batasan
+        if (maksimalHargaPerBingkisan > 0 && totalHarga > maksimalHargaPerBingkisan)
+            apakahDieliminasi = true;
+        if (totalMakanan < minimalJumlahMakanan)
+            apakahDieliminasi = true;
+        if (totalMinuman < minimalJumlahMinuman)
+            apakahDieliminasi = true;
+
+        // Jika tidak dieliminasi, maka masukkan ke daftar valid
+        if (apakahDieliminasi == false)
+            daftarKelompokWarnaValid.push(warna);
+
+        // Sekarang, berikan skor prioritas, agar yang terbaik diletakkan di awal
+        warna.prioritas = Math.abs(totalMakanan - totalMinuman);
+    }
+
+    // Urutkan daftarKelompokWarnaValid berdasarkan prioritas
+    daftarKelompokWarnaValid.sort((a,b) => a.prioritas - b.prioritas);
+
+    return daftarKelompokWarnaValid;
 }
 
 /**
- * Method keempat untuk optimasi grup sesuai permintaan user
- * Tujuan: Memastikan setiap kelompok warna mematuhi batas budget.
- * Strategi: Jika total harga > budget, kita buang item termahal satu per satu
- * sampai budget cukup. Atau ambil dari termurah agar jumlah item banyak.
- * @param {Array<Object>} grup - Array item dalam satu warna
- * @param {number} maxBudget - Batas harga (0 = unlimited)
- * @returns {Array<Object>} - Array item yang sudah disaring sesuai budget
+ * Masukkan barang-barang ke dalam bingkisan sesuai kelompok warna
+ * @param { Array<Warna> } daftarKelompokWarna 
+ * @param { number } jumlahBingkisan 
+ * @returns { Array<Bingkisan> }
  */
-function optimalkanGrup(grup, maxBudget) {
+function masukkanJajananKeBingkisan(daftarKelompokWarna, jumlahBingkisan) {
+    const daftarBingkisan = [];
 
-    // Cek apakah ada batasan budget?
-    // Jika 0 atau null, anggap unlimited -> langsung lolos semua
-    if (!maxBudget || maxBudget <= 0) return grup;
+    // Daftar jajanan ini digunakan sebagai acuan, apakah stok
+    // jajanan masih tersedia atau tidak
+    const daftarJajanan = dapatkanDaftarJajanan();
+    let pointerWarna = 0;
 
-    // Hitung total harga saat ini
-    let totalHarga = 0;
-    for (const item of grup) {
-        totalHarga += item.harga;
-    }
+    for (let i = 0; i < jumlahBingkisan && pointerWarna < daftarKelompokWarna.length; i++) {
+        const warna = daftarKelompokWarna[pointerWarna];
+        let dapatDigunakan = true;
 
-    // Jika total masih di bawah budget, langsung lolos
-    if (totalHarga <= maxBudget) return grup;
+        // Cek stok jajanan untuk setiap warna
+        for (const jajanan of warna.daftarJajanan) {
+            const idJajanan = jajanan.id.substring(0, jajanan.id.indexOf("_"));
+            const jajananAsli = daftarJajanan.find(o => o.id == idJajanan);
 
-    // Jika kemahalan over budget -> Lakukan Optimasi Greedy
-    // Yaitu dengan mengurutkan dari yang termurah dulu.
-    // Supaya kita bisa memasukkan sebanyak mungkin item ke dalam bingkisan.
-    
-    // Copy array agar data asli tidak rusak, lalu sort harga (Ascending: Murah -> Mahal)
-    const sortedJajanans = [...grup].sort((a, b) => a.harga - b.harga);
-    
-    const hasilValid = [];
-    let hargaBerjalan = 0;
+            if (jajananAsli == null) {
+                continue;
+            }
 
-    for (const item of sortedJajanans) {
-        // Cek jika item ini dimasukkan, apakah jebol?
-        if (hargaBerjalan + item.harga <= maxBudget) {
-            hasilValid.push(item);
-            hargaBerjalan += item.harga;
-        } else {
-            // Jika sudah tidak muat, berhenti loop. Jajanan sisa (yang mahal) dibuang.
-            break; 
+            // Jika stok sudah habis, maka warna ini tidak dapat digunakan
+            if (jajananAsli.jumlah-- <= 0) {
+                // i harus dikurangi, agar kita bisa mereplace dengan warna baru
+                i--;
+                // pointerWarna dipindah ke warna baru
+                pointerWarna++;
+                dapatDigunakan = false;
+                // Lalu break for-loop jajanan per warna
+                break;
+            }
+        }
+
+        // Jika dapat digunakan, masukkan ke daftar bingkisan
+        if (dapatDigunakan == true) {
+            const bingkisan = new Bingkisan(i+1, warna.daftarJajanan);
+            daftarBingkisan.push(bingkisan);
         }
     }
 
-    return hasilValid;
-}
-
-/**
- * Method kelimat untuk validasi komposisinya
- * Tujuan: Mengecek apakah bingkisan memenuhi syarat minimal jumlah makanan/minuman.
- * @param {Array<Object>} items - Kandidat bingkisan
- * @param {number} minMakan - Syarat minimal makanan
- * @param {number} minMinum - Syarat minimal minuman
- * @returns {boolean} - True jika valid, False jika tidak
- */
-function validasiKomposisi(items, minMakan, minMinum) {
-    let countMakan = 0;
-    let countMinum = 0;
-
-    // Hitung jumlah tipe
-    for (const item of items) {
-        if (item.tipe === "makanan") countMakan++;
-        if (item.tipe === "minuman") countMinum++;
-    }
-
-    // Kembalikan true jika kedua syarat terpenuhi
-    return countMakan >= minMakan && countMinum >= minMinum;
-}
-
-/**
- * Method terakhir untuk mengeluarkan bingkisan final
- * Tujuan: Mengubah array item menjadi Object Bingkisan final sesuai permintaan user.
- * Jika kandidat valid lebih sedikit dari permintaan user, kita lakukan pengulangan (Round Robin).
- * @param {number} jumlahDiminta - User ingin berapa bingkisan?
- * @param {Array<Array<Object>>} kandidatValid - Daftar bingkisan yang sudah lolos seleksi
- * @returns {Array<Bingkisan>} - Array object Bingkisan siap tampil
- */
-function buatBingkisanFinal(jumlahDiminta, kandidatValid) {
-    const hasilAkhir = [];
-    
-    // Loop sebanyak jumlah bingkisan yang diminta user
-    for (let i = 0; i < jumlahDiminta; i++) {
-        
-        // Pilih kandidat menggunakan Modulo (%)
-        // Contoh: Ada 2 kandidat (A, B). User minta 3 bingkisan.
-        // i=0 -> ambil A
-        // i=1 -> ambil B
-        // i=2 -> ambil A lagi (karena 2 % 2 = 0)
-        const indexPilih = i % kandidatValid.length;
-        const isiBingkisan = kandidatValid[indexPilih];
-
-        // Buat Object Bingkisan
-        // ID Bingkisan kita buat i+1 (Bingkisan 1, Bingkisan 2, dst)
-        const bingkisanBaru = new Bingkisan(i + 1, isiBingkisan);
-        
-        hasilAkhir.push(bingkisanBaru);
-    }
-
-    return hasilAkhir;
+    return daftarBingkisan;
 }

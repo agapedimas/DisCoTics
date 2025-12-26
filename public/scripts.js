@@ -30,6 +30,21 @@ class Bingkisan {
     }
 }
 
+
+// kelas untuk warna
+class Warna extends Bingkisan {
+    /**
+     * @param { number } warna 
+     * @param { number } prioritas 
+     * @param { Array<Jajanan> } daftarJajanan 
+     */
+    constructor(warna, prioritas, daftarJajanan) {
+        super(randomizeString(), daftarJajanan);
+        this.warna = warna;
+        this.prioritas = prioritas;
+    }
+}
+
 /**
  * Mengambil data daftar jajanan dari database
  * @returns { Array<Jajanan> }
@@ -239,13 +254,13 @@ Button_SelesaiFormJajananEdit.onclick = function() {
 
 // Tombol 'Buat Kombinasi Bingkisan' untuk meng-generate kombinasi bingkisan dari algorithm.js
 Button_BuatKombinasiBingkisan.onclick = function() {
-    const hasilGenerasi = generateBingkisan();
+    const hasilGenerasi = buatDaftarBingkisan();
     Section_HasilPewarnaan.innerHTML = null;
     Section_HasilBingkisan.innerHTML = null;
 
     let i = 1;
     for (const bingkisan of hasilGenerasi.daftarPewarnaan) {
-        const bingkisanElement = renderBingkisan(new Bingkisan(randomizeString(), bingkisan));
+        const bingkisanElement = renderBingkisan(bingkisan);
         bingkisanElement.idElement.innerText = "Warna " + i++;
         Section_HasilPewarnaan.append(bingkisanElement);
     }
