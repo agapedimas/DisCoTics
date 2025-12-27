@@ -9,9 +9,12 @@
  *      daftarPewarnaan: Array<Array<Jajanan>>
  * }>}
  */
-function buatDaftarBingkisan(jumlahBingkisan, maksimalHargaPerBingkisan, minimalJumlahMakanan, minimalJumlahMinuman) {
+async function buatDaftarBingkisan(jumlahBingkisan, maksimalHargaPerBingkisan, minimalJumlahMakanan, minimalJumlahMinuman) {
     // Counter global, digunakan untuk sleep loop agar UI tidak freezing
     window.x = 0;
+
+    // Beri nafas untuk UI terlebih dahulu, baru mulai proses algoritma
+    await Delay(1000);
 
     // Dibuat new Promise() untuk mengeksekusinya secara asinkronus
     return new Promise(async function(resolve) {
@@ -37,7 +40,7 @@ function buatDaftarBingkisan(jumlahBingkisan, maksimalHargaPerBingkisan, minimal
     
         // Bangun graf konflik
         const graf = await bangunGrafKonflik(daftarJajanan);
-    
+
         // Lakukan pewarnaan
         const hasilWarna = await welshPowellColoring(daftarJajanan, graf);
     
@@ -205,8 +208,8 @@ async function welshPowellColoring(daftarJajanan, graf) {
 
             // Cek satu per satu anggota yang sudah ada di currentColor
             for (const existingId in warnaMap) {
-                if (window.x++ % 500000 == 0)
-                    await Delay(0);
+                if (window.x++ % 10000000 == 0)
+                    await Delay(10);
 
                 // Hanya cek yang warnanya sama dengan warna saat ini
                 if (warnaMap[existingId] === currentColor) {
