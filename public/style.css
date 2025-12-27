@@ -186,7 +186,7 @@
         .root .activity {
             transition: 0.25s opacity;
         }
-    .root.peek {
+    .root.peek:not(.dim) {
         transform: translateX(0);
     }
         .root.peek .activity {

@@ -4,6 +4,7 @@ Button_DaftarItem.onclick = function(event) {
         rootElement.classList.remove("peek");
     }
     else {
+        Section_DaftarJajanan.parentNode.scrollTop = 0;
         rootElement.classList.add("peek");
     }
     event.stopPropagation();
@@ -343,12 +344,14 @@ Button_BuatKombinasiBingkisan.onclick = async function() {
         bingkisanElement.idElement.innerText = "Warna " + i++;
         Grid_HasilPewarnaan.append(bingkisanElement);
     }
+    Grid_HasilPewarnaan.scrollLeft = 0;
 
     Grid_HasilBingkisan.data = hasilFinal.daftarBingkisan;
     for (const bingkisan of hasilFinal.daftarBingkisan) {
         const bingkisanElement = renderBingkisan(bingkisan);
         Grid_HasilBingkisan.append(bingkisanElement);
     }
+    Grid_HasilBingkisan.scrollLeft = 0;
 
     for (const button of buttons)
         button.disabled = false;
