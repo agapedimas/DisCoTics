@@ -1,31 +1,23 @@
-body {
-    display: grid;
-    height: 100vh;
-}
-
 .root {
-    grid-auto-flow: column;
-    grid-auto-columns: auto;
+    grid-template-areas: "Navigation Content";
+    grid-auto-columns: 425px auto;
     grid-auto-rows: auto;
-    grid-template-areas: unset;
 }
+    .root nav {
+        overflow: auto;
+        scrollbar-width: thin;
+        background: var(--secondary);
+        padding: var(--padding);
+        box-shadow: inset -10px 0 5px -10px var(--border-sidebar);
+    }
 
 .activity {
     background: var(--background-activity-grid);
-    grid-auto-rows: max-content auto;
 }
 
-#Content_Main > article {
-    display: grid;
-    grid-auto-columns: min(400px, 50%) auto;
-    grid-auto-rows: max-content;
-    grid-auto-flow: column;
-    gap: var(--padding);
+#Button_DaftarItem {
+    display: none;
 }
-    #Content_Main > article > section {
-        display: grid;
-        align-content: start;
-    }
 
 .list:has(input) .stack {
     grid-auto-columns: 100px auto;
@@ -73,8 +65,8 @@ body {
         text-transform: capitalize;
     }
 
-#Section_DaftarJajanan > button,
-#Section_ToolsJajanan > button {
+#Section_DaftarJajanan > button:where(.plain, .accent),
+#Section_ToolsJajanan > button:where(.plain, .accent) {
     display: grid;
     width: 100%;
     height: 2.5em;
@@ -91,22 +83,26 @@ body {
         display: block;
     }
 
-
-#Text_HasilKombinasi,
-#Text_HasilBingkisan {
-    display: block;
-    font-size: 1.2em;
-    font-weight: bold;
-    margin: 2em 0 1em;
-}
-
-#Section_HasilPewarnaan,
-#Section_HasilBingkisan {
+#Section_HasilPewarnaan > #Grid_HasilPewarnaan,
+#Section_HasilBingkisan > #Grid_HasilBingkisan {
     display: grid;
     grid-auto-flow: column;
     grid-auto-columns: 300px;
     gap: 0.5em;
     overflow-x: auto;
+    margin: 0 calc(var(--padding) * -1);
+    padding: 0 var(--padding);
+    scrollbar-width: none;
+}
+#Section_HasilPewarnaan:has(> #Grid_HasilPewarnaan:empty),
+#Section_HasilBingkisan:has(> #Grid_HasilBingkisan:empty) 
+{
+    display: none;
+}
+#Grid_HasilContainer {
+    display: grid;
+    gap: 0.5em;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 }
 
 .bingkisan {
@@ -176,3 +172,32 @@ body {
                 .bingkisan .daftarjajanan .jajanan .description .type {
                     text-transform: capitalize;
                 }
+
+@media screen and (max-width: 800px) {
+    #Button_DaftarItem {
+        display: block;
+    }
+    .root {
+        width: calc(100vw + 320px);
+        grid-auto-columns: 320px 100vw;
+        transform: translateX(-320px);
+        transition: 0.6s var(--key-animation) transform;
+    }
+        .root .activity {
+            transition: 0.25s opacity;
+        }
+    .root.peek {
+        transform: translateX(0);
+    }
+        .root.peek .activity {
+            opacity: 0.5;
+        }
+            .root.peek .activity > * {
+                pointer-events: none;
+            }
+    #List_DaftarJajanan .description {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0 1ch;
+    }
+}

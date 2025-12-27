@@ -1,3 +1,20 @@
+Button_DaftarItem.onclick = function(event) {
+    const rootElement = Activity_Main.parentNode.parentNode;
+    if (rootElement.classList.contains("peek")) {
+        rootElement.classList.remove("peek");
+    }
+    else {
+        rootElement.classList.add("peek");
+    }
+    event.stopPropagation();
+}
+Activity_Main.onclick = function() {
+    const rootElement = Activity_Main.parentNode.parentNode;
+    if (rootElement.classList.contains("peek")) {
+        rootElement.classList.remove("peek");
+    }
+}
+
 // kelas untuk jajanan
 class Jajanan {
     /**
@@ -254,14 +271,6 @@ Button_SelesaiFormJajananEdit.onclick = function() {
 
 // Tombol 'Buat Kombinasi Bingkisan' untuk meng-generate kombinasi bingkisan dari algorithm.js
 Button_BuatKombinasiBingkisan.onclick = async function() {
-    const buttons = document.querySelectorAll("article > section button");
-    for (const button of buttons)
-        button.disabled = true;
-
-    Button_BuatKombinasiBingkisan.classList.add("loading");
-    Section_HasilPewarnaan.innerHTML = null;
-    Section_HasilBingkisan.innerHTML = null;
-
     // Ambil Data Jajanan
     const daftarMentah = dapatkanDaftarJajanan();
     
@@ -274,6 +283,16 @@ Button_BuatKombinasiBingkisan.onclick = async function() {
         });
         return;
     }
+
+    const buttons = document.querySelectorAll("button");
+    for (const button of buttons)
+        button.disabled = true;
+
+    Button_BuatKombinasiBingkisan.classList.add("loading");
+    Grid_HasilPewarnaan.innerHTML =
+    Grid_HasilBingkisan.innerHTML =
+    Grid_HasilPewarnaan.data =
+    Grid_HasilBingkisan.data = null;
 
     // Ambil syarat-syarat bingkisan
     const jumlahBingkisan = parseInt(Input_BanyakBingkisan.value) || 1;
@@ -318,20 +337,49 @@ Button_BuatKombinasiBingkisan.onclick = async function() {
     }
 
     let i = 1;
+    Grid_HasilPewarnaan.data = hasilFinal.daftarPewarnaan;
     for (const bingkisan of hasilFinal.daftarPewarnaan) {
         const bingkisanElement = renderBingkisan(bingkisan);
         bingkisanElement.idElement.innerText = "Warna " + i++;
-        Section_HasilPewarnaan.append(bingkisanElement);
+        Grid_HasilPewarnaan.append(bingkisanElement);
     }
 
+    Grid_HasilBingkisan.data = hasilFinal.daftarBingkisan;
     for (const bingkisan of hasilFinal.daftarBingkisan) {
         const bingkisanElement = renderBingkisan(bingkisan);
-        Section_HasilBingkisan.append(bingkisanElement);
+        Grid_HasilBingkisan.append(bingkisanElement);
     }
 
     for (const button of buttons)
         button.disabled = false;
     Button_BuatKombinasiBingkisan.classList.remove("loading");
+}
+
+Section_HasilPewarnaan.onheaderclick = function() {
+    Activity_Main.sections[1].name = Section_HasilPewarnaan.header.innerText;
+    Grid_HasilContainer.innerHTML = null;
+    
+    let i = 1;
+    for (const bingkisan of Grid_HasilPewarnaan.data || []) {
+        const bingkisanElement = renderBingkisan(bingkisan);
+        bingkisanElement.idElement.innerText = "Warna " + i++;
+        Grid_HasilContainer.append(bingkisanElement);
+    }
+
+    Activity_Main.sections[1].scrollTop = 0;
+    Activity_Main.navigateTo(1);
+}
+Section_HasilBingkisan.onheaderclick = function() {
+    Activity_Main.sections[1].name = Section_HasilBingkisan.header.innerText;
+    Grid_HasilContainer.innerHTML = null;
+    
+    for (const bingkisan of Grid_HasilBingkisan.data || []) {
+        const bingkisanElement = renderBingkisan(bingkisan);
+        Grid_HasilContainer.append(bingkisanElement);
+    }
+
+    Activity_Main.sections[1].scrollTop = 0;
+    Activity_Main.navigateTo(1);
 }
 
 /**
@@ -491,9 +539,7 @@ function registerCurrencyInput(input) {
     });
 }
 
-window.onload = function() {
-    tampilkanDaftarJajanan();
-}
+tampilkanDaftarJajanan();
 
 function randomizeString() {
     const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
