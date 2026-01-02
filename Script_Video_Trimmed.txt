@@ -1,4 +1,4 @@
-Scene 1:
+Scene 1: Nathan
 - It’s Christmas time! 
 - and what better way to celebrate than giving each of our friends and families a Christmas Hamper!
 - You head out to the nearest convenient store but they are low on stock. 
@@ -6,7 +6,7 @@ Scene 1:
 - You want every hamper to have a variety of flavors, 
 - but how do you avoid a "chocolate overload" while keeping the price and item counts identical?
 
-Scene 2:
+Scene 2: Vian
 - So here is the goal, we want each hamper to:
 1. Contain the same number of food and drink according to the determined amount.
 2. Contain items of different flavors so a chocolate pudding cannot be put alongside chocolate milk (No chocolate overload).
@@ -14,7 +14,7 @@ Scene 2:
 
 - Lucky for you, there is a mathmatical solution to that using the Graph Coloring Theory.
 
-Scene 3: 
+Scene 3: Dimas
 - Graph Coloring is the process of assigning labels/colors to the vertices of a graph.
 - The general rule of thumb is that no two vertices that are connected by an edge can have the same color.
 - The most popular graph coloring algorithm is Welsh-Powell's algorithm:
@@ -23,6 +23,23 @@ Scene 3:
 - Ther result: After assigning all colors, you will have a graph of conflicting flavors for every item.
 - Each color contains every item that can coexist within one hamper.
 
-Scene 4: 
+Scene 4: Pearce
 - Here is a web we made called the Christmas Hamper Factory. 
 - Demo: 
+- All you need to do is add the items with the tambah button, 
+1 Type the name of the snack
+2. The price
+3. The quantitiy you have
+4. Select the flavor
+5. Choose whether it is a beverage or a snack.
+- Add all the item you have then, determine:
+1. The number of hamper you wnat to make.
+2. The budget for each hamper.
+3. And the minimum number of snack/beverage each hamper must contain.
+
+- After all items and parameters are set, 
+- click on the "Buat Kombinasi Bingkisan" button to create all the possible combinations of hamper with those requirements.
+- You can see the output below it and what each hamper/color contains with the total price required for it. 
+- You can check the list for all the hampers created with each contents according to the number of items you have.
+- We also include a randomize items list to test the program or to have fun with it.
+
