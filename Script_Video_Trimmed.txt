@@ -27,7 +27,7 @@ Scene 4: Pearce
 - Here is a web we made called the Christmas Hamper Factory. 
 - Demo: 
 - All you need to do is add the items with the tambah button, 
-1 Type the name of the snack
+1 Type the name of the item
 2. The price
 3. The quantitiy you have
 4. Select the flavor
