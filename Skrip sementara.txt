@@ -1,0 +1,30 @@
+Scene 1: Christmas Hampers Time!
+
+It’s Christmas gift season, and you decide to give out snack-and-drink hampers. Due to limited stock and low supplies, you end up buying identical items in different flavors. Back at home, you’re left with assorted items of the same type but varying flavors.
+
+Your goal is to create hampers that contain a variety of different flavors (no similar flavors together), have the same number of snacks and beverages, and share the same total value.
+This problem can be solved using Graph Coloring Theory.
+
+Scene 2: The problem constraints
+- So we have these criteria to focus on:
+1. Each hamper must have at minimum 1 food item and 1 drink item. (n > 0 each)
+2. Each hamper must contain the same number of food and drink according to the determined amount.
+3. Each hamper must contain items of different flavors so a chocolate pudding cannot be put alongside chocolate milk (No chocolate overload).
+4. Each hamper's value must be within the determined budget. 
+
+Scene 3: What is Graph Coloring?
+Graph Coloring is the process of assigning colors to a graph’s vertices so that no two connected vertices share the same color. 
+One of the most well-known methods is the Welch–Powell algorithm, which works as follows:
+
+1. Compute the degree of each vertex.
+2. Sort vertices in descending order of degree.
+3. Assign the first color to the highest-degree vertex.
+4. Continue assigning the same color to non-adjacent, uncolored vertices.
+5. Repeat with new colors until all vertices are colored.
+
+Scene 4: The solution + demo
+- In this case each item is considered as a vertex and each shared flavors is the edge connecting it.
+- After assigning it all, you will have a graph of conflicting flavors for every item.
+
+- Then using a Greedy Approach we can create the hamper so that it is as close to the determined budget as possible.
+- Using the graph of conflicting flavors, we can put an item of different color
