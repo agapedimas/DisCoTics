@@ -1,0 +1,28 @@
+Scene 1:
+- It’s Christmas time! 
+- and what better way to celebrate than giving each of our friends and families a Christmas Hamper!
+- You head out to the nearest convenient store but they are low on stock. 
+- So you bought just about any random mix of snacks and drinks haht you can get.
+- You want every hamper to have a variety of flavors, 
+- but how do you avoid a "chocolate overload" while keeping the price and item counts identical?
+
+Scene 2:
+- So here is the goal, we want each hamper to:
+1. Contain the same number of food and drink according to the determined amount.
+2. Contain items of different flavors so a chocolate pudding cannot be put alongside chocolate milk (No chocolate overload).
+3. Each hamper's value must be within the determined budget. 
+
+- Lucky for you, there is a mathmatical solution to that using the Graph Coloring Theory.
+
+Scene 3: 
+- Graph Coloring is the process of assigning labels/colors to the vertices of a graph.
+- The general rule of thumb is that no two vertices that are connected by an edge can have the same color.
+- The most popular graph coloring algorithm is Welsh-Powell's algorithm:
+- Here you can pause the video to read the full algorithm.
+- In our case, each item is a vertex, and shared flavors are the edges connecting them.
+- Ther result: After assigning all colors, you will have a graph of conflicting flavors for every item.
+- Each color contains every item that can coexist within one hamper.
+
+Scene 4: 
+- Here is a web we made called the Christmas Hamper Factory. 
+- Demo: 

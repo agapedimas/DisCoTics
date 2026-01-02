@@ -1,27 +1,26 @@
 Scene 1: Christmas Hampers Time!
-- Its that time of the year where we give each of our friends and families some warm Christmas gifts...
-- and what better way than giving a Christmas Hamper!
+- Its that time of the year where we joined together with our friends and families to celebrate Christmas...
+- and what better way to celebrate than giving each of our friends and families a Christmas Hamper!
 - You go to your nearest convenient store to buy the snacks and drinks you had in mind.
 - But then you see they have a limited stock on the Matcha Mochi your friend want so much, so you decided to buy other flavors for the others.
 - As it would seem, this store is running low on stocks for many items too because of the last Christmas Sale, so you buy each type of item varying in flavors.  
 - Back at home you are left with snacks and drinks of the same type in different flavors.
 - You want to make sure that each hamper containts a variety of different flavors, such that that a chocolate brownies shouldn't be put alongside a chocolate oats cookie. 
 - So how can we make sure that each hamper constaints unique flavors of snacks and beverage, have the same number of snacks and beverage, while also keeping the value identical for each hamper?
-- Lucky for you, there is a mathmatical solution to that using the Graph Coloring Theory.
 
 Scene 2: The problem constraints
-- So we have these criteria to focus on:
-1. Each hamper must have at minimum 1 food item and 1 drink item. (n > 0 each)
-2. Each hamper must contain the same number of food and drink according to the determined amount.
-3. Each hamper must contain items of different flavors so a chocolate pudding cannot be put alongside chocolate milk (No chocolate overload).
-4. Each hamper's value must be within the determined budget. 
+- So we have these criteria to focus on:    
+1. Each hamper must contain the same number of food and drink according to the determined amount.
+2. Each hamper must contain items of different flavors so a chocolate pudding cannot be put alongside chocolate milk (No chocolate overload).
+3. Each hamper's value must be within the determined budget. 
 
+- Lucky for you, there is a mathmatical solution to that using the Graph Coloring Theory.
 - How can Graph Coloring Theory help us in this situation?
 
 Scene 3: What is Graph Coloring?
-- Graph Coloring is the process of assigning labels/colors to the elements of a graph.
+- Graph Coloring is the process of assigning labels/colors to the vertices of a graph.
 - The general rule of thumb is that no two vertices that are connected by an edge can have the same color.
-- The most popular graph coloring algorithm is Welch-Powell's algorithm:
+- The most popular graph coloring algorithm is Welsh-Powell's algorithm:
 1. Calculate degrees: Determine the degree (number of connections) of each vertex in the graph.
 2. Sort vertices: List the vertices in descending order of their degrees.
 3. Apply color: Start with the first color. Color the first vertex in the list with this color.
@@ -31,9 +30,11 @@ Scene 3: What is Graph Coloring?
 Scene 4: The solution + demo
 - In this case each item is considered as a vertex and each shared flavors is the edge connecting it.
 - After assigning it all, you will have a graph of conflicting flavors for every item.
+- Each color contains every item that can coexist within one hamper.
 
-- Then using a Greedy Approach we can create the hamper so that it is as close to the determined budget as possible.
-- Using the graph of conflicting flavors, we can put an item of different color 
-
+- Then using a Greedy Approach we can prune the item so that each hamper/color is as close to the determined budget as possible.
+- After that we check wether this color is within the constraints of having x snacks and y drinks.
+- If it passes the check, then we have successfuly compose a hamper.
+- Repeat the process until we have the number of hamper we needed. 
 
 
