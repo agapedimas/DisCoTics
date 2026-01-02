@@ -14,23 +14,26 @@
     </head>
     <body>
         <div class="root">
-            <div class="activity">
-                <div class="header">
-                    <span class="title">Pabrik Bingkisan Natal</span>
+            <nav>
+                <div id="Section_DaftarJajanan">
+                    <div id="List_DaftarJajanan" class="list" ad-header="Daftar Jajanan" ad-action="Tambah" onaction="bukaFormJajanan()">
+                    </div>
+                    <button id="Button_TambahRandom" class="plain accent">Tambah 5 Data Random</button>
+                    <button id="Button_Bersihkan" class="plain critical">Bersihkan Daftar</button>
                 </div>
-                <div class="content" id="Content_Main">
-                    <article>
-                        <section>
-                            <div id="Section_DaftarJajanan">
-                                <div id="List_DaftarJajanan" class="list" ad-header="Daftar Jajanan" ad-action="Tambah" onaction="bukaFormJajanan()">
-                                </div>
-                                <button id="Button_TambahRandom" class="plain accent">Tambah 5 Data Random</button>
-                                <button id="Button_Bersihkan" class="plain critical">Bersihkan Daftar</button>
+            </nav>
+            <div class="main">
+                <div class="activity" id="Activity_Main">
+                    <section>
+                        <div class="header">
+                            <div class="buttons">
+                                <button id="Button_DaftarItem">Daftar Item</button>
                             </div>
-                        </section>
-                        <section>
-                            <div id="Section_ToolsJajanan">
-                                <div id="List_ToolsJajanan" class="list" ad-header="Tools Jajanan">
+                            <span class="title">Pabrik Bingkisan Natal</span>
+                        </div>
+                        <div class="content">
+                            <section ad-header="Tools Jajanan" id="Section_ToolsJajanan">
+                                <div id="List_ToolsJajanan" class="list">
                                     <div class="stack">
                                         <span>Banyak Bingkisan</span>
                                         <input id="Input_BanyakBingkisan" type="number" class="plain" min="1" value="1"/>
@@ -48,14 +51,25 @@
                                         <input id="Input_BanyakMinuman" type="number" class="plain" min="0" value="1"/>
                                     </div>
                                 </div>
-                                <button id="Button_BuatKombinasiBingkisan" class="accent">Buat Kombinasi Bingkisan</button>
-                            </div>
-                            <span id="Text_HasilKombinasi">Daftar Pewarnaan</span>
-                            <section id="Section_HasilPewarnaan"></section>
-                            <span id="Text_HasilBingkisan">Hasil Akhir Pembagian Bingkisan</span>
-                            <section id="Section_HasilBingkisan"></section>
-                        </section>
-                    </article>
+                                <button id="Button_BuatKombinasiBingkisan" class="accent">
+                                    <div class="progressring"></div>
+                                    <span>Buat Kombinasi Bingkisan</span>
+                                </button>
+                            </section>
+                            <section ad-header="Daftar Pewarnaan" id="Section_HasilPewarnaan">
+                                <div id="Grid_HasilPewarnaan"></div>
+                            </section>
+                            <section ad-header="Hasil Akhir Bingkisan" id="Section_HasilBingkisan">
+                                <div id="Grid_HasilBingkisan"></div>
+                            </section>
+                        </div>
+                    </section>
+                    <section>
+                        <div class="header"></div>
+                        <div class="content">
+                            <div id="Grid_HasilContainer"></div>
+                        </div>
+                    </section>
                 </div>
             </div>
         </div>
