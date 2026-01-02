@@ -1,8 +1,8 @@
 Scene 1: Nathan
 - It’s Christmas time! 
 - and what better way to celebrate than giving each of our friends and families a Christmas Hamper!
-- You head out to the nearest convenient store but they are low on stock. 
-- So you bought just about any random mix of snacks and drinks haht you can get.
+- You head to your nearest convenient store to but snacks, but due to limited stock and low supplies,
+- you end up buying identical items in different flavors.
 - You want every hamper to have a variety of flavors, 
 - but how do you avoid a "chocolate overload" while keeping the price and item counts identical?
 
