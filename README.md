@@ -1,5 +1,7 @@
-# DisCoTics
-Discrete Competition in Informatics
+# Pabrik Bingkisan Natal
+Sebuah program sederhana untuk projek Discrete Competition in Informatics
+
+<img width="1689" height="1092" alt="Screenshot 2026-01-07 at 9 10 05 PM" src="https://github.com/user-attachments/assets/2b4a41da-b5ad-4162-acd7-7695439158ba" />
 
 ## Anggota Kelompok
 - Agape Dimas / 6182401062
