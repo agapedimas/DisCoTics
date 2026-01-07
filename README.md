@@ -38,6 +38,61 @@ Aplikasi dibuat menggunakan teknologi web sederhana sehingga dapat dijalankan la
     - Proses penyusunan bingkisan berdasarkan hasil pewarnaan graf dan batasan tambahan.
     - Evaluasi dan pemilihan kombinasi bingkisan yang paling optimal.
 
+## Fitur Aplikasi
+
+Website **Pabrik Bingkisan Natal** menyediakan _interface_ interaktif untuk membantu pengguna menyusun bingkisan snack dan minuman berdasarkan aturan yang telah ditentukan. Fitur-fitur utama yang tersedia pada aplikasi ini meliputi:
+
+### 1. Manajemen Daftar Jajanan
+Pengguna dapat mengelola daftar jajanan yang akan digunakan dalam penyusunan bingkisan. Fitur yang tersedia antara lain:
+- Menambahkan data jajanan baru secara manual melalui form input.
+- Mengedit data jajanan yang telah dimasukkan, termasuk nama, harga, jumlah, rasa, dan tipe jajanan.
+- Menghapus jajanan dari daftar.
+- Menambahkan data jajanan secara acak (_random_) untuk keperluan simulasi.
+- Mengosongkan seluruh daftar jajanan dengan satu tombol.
+
+Setiap jajanan memiliki atribut:
+- Nama jajanan  
+- Harga satuan  
+- Jumlah tersedia  
+- Rasa  
+- Tipe jajanan (makanan atau minuman)
+
+
+### 2. Form Input dan Edit Jajanan
+Aplikasi menyediakan form _pop-up_ untuk:
+- Menambahkan jajanan baru.
+- Mengedit jajanan yang sudah ada.
+
+Form ini memungkinkan pengguna memperbarui data jajanan secara cepat tanpa perlu berpindah halaman.
+
+### 3. Pengaturan Parameter Bingkisan
+Melalui panel **_Tools Jajanan_**, pengguna dapat menentukan aturan penyusunan bingkisan, antara lain:
+- Jumlah bingkisan yang ingin dibuat.
+- Batas maksimal harga untuk setiap bingkisan.
+- Minimal jumlah makanan dalam satu bingkisan.
+- Minimal jumlah minuman dalam satu bingkisan.
+
+> Parameter ini digunakan sebagai acuan dalam proses pembuatan kombinasi bingkisan.
+
+### 4. Proses Pembuatan Kombinasi Bingkisan
+Pengguna dapat menjalankan proses penyusunan bingkisan dengan menekan tombol **Buat Kombinasi Bingkisan**.  
+Sistem akan mengolah data jajanan dan parameter yang telah ditentukan untuk menghasilkan bingkisan yang sesuai dengan aturan yang berlaku.
+
+### 5. Tampilan Hasil Pewarnaan
+Aplikasi menampilkan hasil pengelompokan jajanan berdasarkan konflik rasa pada bagian **Daftar Pewarnaan**, sehingga pengguna dapat melihat pembagian jajanan ke dalam kelompok yang berbeda.
+
+### 6. Tampilan Hasil Akhir Bingkisan
+Hasil akhir penyusunan bingkisan ditampilkan pada bagian **Hasil Akhir Bingkisan**, yang memuat:
+- Daftar bingkisan yang dihasilkan sesuai jumlah yang diminta.
+- Detail isi setiap bingkisan.
+- Informasi total harga bingkisan.
+
+### 7. Antarmuka Interaktif Berbasis Web
+Aplikasi dirancang berbasis web sehingga:
+- Dapat dijalankan langsung melalui browser.
+- Tidak memerlukan instalasi tambahan.
+- Menyediakan tampilan interaktif menggunakan panel, pop-up, dan grid untuk mempermudah penggunaan.
+
 ## Cara Menjalankan Aplikasi
 Aplikasi dapat dijalankan tanpa instalasi atau pengaturan tambahan. Cukup lakukan langkah berikut:
 1. Jalankan file `./public/index.html` dengan menggunakan browser apa pun (Chrome, Firefox, Edge, dan sebagainya).
